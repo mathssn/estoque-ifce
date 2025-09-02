@@ -3,14 +3,16 @@ from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 
 
-db_name = "estoque_ifce"
+db_name = 'estoque_ifce'
+username = 'root'
+password = '1234'
 
-db = create_engine("mysql+mysqlconnector://root:1234@localhost:3306")
+db = create_engine(f"mysql+mysqlconnector://{username}:{password}@localhost:3306")
 
 with db.connect() as conn:
     conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {db_name}"))
 
-db = create_engine(f"mysql+mysqlconnector://root:1234@localhost:3306/{db_name}")
+db = create_engine(f"mysql+mysqlconnector://{username}:{password}@localhost:3306/{db_name}")
 Session = sessionmaker(bind=db, expire_on_commit=False)
 
 
