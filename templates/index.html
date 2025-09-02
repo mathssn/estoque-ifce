@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-4">
+  <div class="alert alert-info text-center">
+    {% if dia %}
+        Dia aberto: <strong><a href="{{ url_for('movimentacoes_diarias', data=dia.data) }}" style="text-decoration: none;">{{ dia.data | format_date }}</a></strong>
+    {% else %}
+        Nenhum dia aberto
+    {% endif %}
+  </div>
+  
+  <div class="d-grid gap-3">
+    <a href="{{ url_for('produtos.produtos_lista') }}" class="btn btn-outline-success btn-lg">Produtos</a>
+    <a href="{{ url_for('movimentacoes_diarias', data=None) }}" class="btn btn-outline-success btn-lg">Movimentações Diárias</a>
+    <a href="{{ url_for('relatorios.relatorios_lista') }}" class="btn btn-outline-success btn-lg">Relatórios</a>
+    {% if session.get('nivel_acesso') in ['Superusuario'] %}
+      <a href="{{ url_for('usuarios.usuarios_lista') }}" class="btn btn-outline-success btn-lg">Usuários</a>
+    {% endif %}
+    {% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+      <a href="{{ url_for('fornecedores.fornecedores_lista') }}" class="btn btn-outline-success btn-lg">Fornecedores</a>
+      <a href="{{ url_for('marcas.marcas_lista') }}" class="btn btn-outline-success btn-lg">Marcas</a>
+      <a href="{{ url_for('notas_fiscais.notas_lista') }}" class="btn btn-outline-success btn-lg">Notas fiscais</a>
+    {% endif %}
+  </div>
+</div>
+
+
+{% endblock %}

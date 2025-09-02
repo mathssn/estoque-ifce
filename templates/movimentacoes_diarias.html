@@ -1,0 +1,644 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-4">
+  <div class="page-title mb-4">
+    <h2 class="fw-bold border-bottom pb-2">
+      <i class="bi bi-person-circle me-2"></i> Movimentações diárias
+    </h2>
+  </div>
+</div>
+
+
+<div class="container py-4">
+
+<div class="card mb-3">
+    <div class="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+      <form id="formData" action="/movimentacoes-diarias" class="d-flex align-items-center gap-2">
+        <input type="date" id="date" name="date" value="{{ data }}" class="form-control">
+      </form>
+
+{% if dia %}
+    {% if dia.fechado %}
+        <div class="alert alert-warning">
+          Status do dia: <strong>Fechado</strong>
+        </div>  
+      {% else %}
+        <div class="alert alert-success">
+          Status do dia: <strong>Aberto</strong>
+        </div>  
+      {% endif %}
+{% else %}
+    <div class="alert alert-secondary">
+      Status do dia: <strong>Indisponivel</strong>
+    </div>  
+{% endif %}
+</div>
+</div>
+</div>
+
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    {% if tipo_movimentacao == 'saida' %}
+      <button class="nav-link active" id="saidas-tab" data-bs-toggle="tab" data-bs-target="#saidas-tab-pane" type="button" role="tab" aria-controls="saidas-tab-pane" aria-selected="true">Saidas</button>
+    {% else %}
+      <button class="nav-link" id="saidas-tab" data-bs-toggle="tab" data-bs-target="#saidas-tab-pane" type="button" role="tab" aria-controls="saidas-tab-pane" aria-selected="false">Saidas</button>
+    {% endif %}     
+  </li>
+  <li class="nav-item" role="presentation">
+    {% if tipo_movimentacao == 'entrada' %}
+      <button class="nav-link active" id="entradas-tab" data-bs-toggle="tab" data-bs-target="#entradas-tab-pane" type="button" role="tab" aria-controls="entradas-tab-pane" aria-selected="true">Entradas</button>
+    {% else %}
+      <button class="nav-link" id="entradas-tab" data-bs-toggle="tab" data-bs-target="#entradas-tab-pane" type="button" role="tab" aria-controls="entradas-tab-pane" aria-selected="false">Entradas</button>
+    {% endif %}
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="saldo-tab" data-bs-toggle="tab" data-bs-target="#saldo-tab-pane" type="button" role="tab" aria-controls="saldo-tab-pane" aria-selected="false">Saldo diário</button>
+  </li>
+</ul>
+
+
+<div class="tab-content" id="myTabContent">
+
+{% if tipo_movimentacao == 'saida' %}
+  <div class="tab-pane fade show active" id="saidas-tab-pane" role="tabpanel" aria-labelledby="saidas-tab" tabindex="0">
+{% else %}
+  <div class="tab-pane fade" id="saidas-tab-pane" role="tabpanel" aria-labelledby="saidas-tab" tabindex="0">
+{% endif %}
+
+
+{% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+{% if dia and not dia.fechado %}
+<div style="display: flex; justify-content: center; margin-top: 15px;">
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSaidaModal" style="margin: 10px;">
+    Cadastrar nova saida
+  </button>
+</div>
+{% endif %}
+{% endif %}
+
+<div class="container mt-5">
+    <div class="table-responsive">
+
+        <table class="table table-striped table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Refeição</th>
+                <th scope="col">Unidade</th>
+                <th scope="col">Quantidade</th>
+                <th scope="col">Marca</th>
+                <th scope="col">Validade</th>
+                <th scope="col">Fornecedor</th>
+                <th scope="col">Nota fiscal</th>
+                <th scope="col">Observação</th>
+                <th scope="col">Responsavel</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+          {% for saida in saidas %}
+            <tr>
+              <td>{{ produtos[saida.produto_id].codigo }}</td>
+              <td>{{ produtos[saida.produto_id].nome }}</td>
+              <td>{{ destinos[saida.destino_id].nome }}</td>
+              <td>{{ produtos[saida.produto_id].unidade }}</td>
+              <td>{{ saida.quantidade }}</td>
+              <td>{{ marcas[saida.marca_id].nome }}</td>
+              <td>{{ saida.data_validade | format_date }}</td>
+              <td>{{ fornecedores[saida.fornecedor_id].nome }}</td>
+              <td>{{ notas_fiscais[saida.nota_fiscal_id].numero }}</td>
+              <td>{{ saida.observacao }}</td>
+              <td>{{ usuarios[saida.usuario_id] }}</td>
+              <td>
+                {% if dia != None %}
+                  {% if dia.fechado == False %}
+                  <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editSaidaModal" onclick="fillSaidaEditForm('{{saida.id}}', '{{saida.produto_id}}', '{{saida.destino_id}}', '{{saida.data_saida}}', '{{saida.quantidade}}', '{{saida.marca_id}}', '{{saida.data_validade}}', '{{saida.fornecedor_id}}', '{{saida.nota_fiscal_id}}','{{saida.observacao}}')">Editar</button>
+                    <form action="{{ url_for('saidas.excluir_saida', saida_id=saida.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta saida?')">
+                      <button type="submit" class="btn btn-danger">Excluir</button>
+                    </form>
+                  </div>
+                  {% else %}
+                    <p>Indisponivel</p>
+                  {% endif %}
+                  {% else %}
+                    <p>Indisponivel</p>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+</table>
+</div>
+</div>
+
+</div>
+{% if tipo_movimentacao == 'entrada' %}
+  <div class="tab-pane fade show active" id="entradas-tab-pane" role="tabpanel" aria-labelledby="entradas-tab" tabindex="0">
+{% else %}
+  <div class="tab-pane fade" id="entradas-tab-pane" role="tabpanel" aria-labelledby="entradas-tab" tabindex="0">
+{% endif %}
+
+
+{% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+{% if dia and not dia.fechado %}
+<div style="display: flex; justify-content: center; margin-top: 15px;">
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEntradaModal" style="margin: 10px;">
+    Cadastrar nova entrada
+  </button>
+</div>
+{% endif %}
+{% endif %}
+
+
+<div class="container mt-5">
+    <div class="table-responsive" style="overflow-x: auto; width: 100%;">
+
+        <table class="table table-striped table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Unidade</th>
+                <th scope="col">Quantidade</th>
+                <th scope="col">Marca</th>
+                <th scope="col">Validade</th>
+                <th scope="col">Fornecedor</th>
+                <th scope="col">Nota fiscal</th>
+                <th scope="col">Observação</th>
+                <th scope="col">Responsavel</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+          {% for entrada in entradas %}
+          <tr>
+              <td>{{ produtos[entrada.produto_id].codigo }}</td>
+              <td>{{ produtos[entrada.produto_id].nome }}</td>
+              <td>{{ produtos[entrada.produto_id].unidade }}</td>
+              <td>{{ entrada.quantidade }}</td>
+              <td>{{ marcas[entrada.marca_id].nome }}</td>
+              <td>{{ entrada.data_validade | format_date }}</td>
+              <td>{{ fornecedores[entrada.fornecedor_id].nome }}</td>
+              <td>{{ notas_fiscais[entrada.nota_fiscal_id].numero }}</td>
+              <td>{{ entrada.observacao }}</td>
+              <td>{{ usuarios[entrada.usuario_id] }}</td>
+              <td>
+                {% if dia != None %}
+                  {% if dia.fechado == False %}
+                  <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEntradaModal" onclick="fillEntradaEditForm('{{entrada.id}}', '{{entrada.produto_id}}', '{{entrada.data_entrada}}', '{{entrada.quantidade}}', '{{entrada.marca_id}}', '{{entrada.data_validade}}', '{{entrada.fornecedor_id}}', '{{entrada.nota_fiscal_id}}', '{{entrada.observacao}}')">Editar</button>
+                    <form action="{{ url_for('entradas.excluir_entrada', entrada_id=entrada.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta entrada?')">
+                      <button type="submit" class="btn btn-danger">Excluir</button>
+                    </form>
+                  </div>
+                  {% else %}
+                        <p>Indisponivel</p>
+                      {% endif %}
+                      {% else %}
+                        <p>Indisponivel</p>
+                  {% endif %}
+              </td>
+          {% endfor %}
+          </tbody>
+</table>
+</div>
+</div>
+
+
+</div>
+<div class="tab-pane fade" id="saldo-tab-pane" role="tabpanel" aria-labelledby="saldo-tab" tabindex="0">
+
+
+{% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+{% if dia and not dia.fechado %}
+<div style="display: flex; justify-content: center; margin-bottom: 15px; margin-top: 25px;">
+  <a type="button" class="btn btn-primary" href="{{ url_for('fechar_dia', data=data) }}" onclick="return confirm('Tem certeza que deseja fechar o dia?')">Fechar dia</a>
+</div>
+{% endif %}
+{% endif %}
+
+<div class="container mt-5">
+    <div class="table-responsive">
+
+        <table class="table table-striped table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Produto</th>
+                <th scope="col">Quantidade inicial</th>
+                <th scope="col">Quantidade entrada</th>
+                <th scope="col">Quantidade saida</th>
+                <th scope="col">Quantidade final</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+
+            {% for saldo in saldos_diarios %}
+                {% if saldo.quantidade_final < produtos[saldo.produto_id].quantidade_minima %}
+                  {% set cor = 'red' %}
+                {% else %}
+                  {% set cor = 'black' %}
+                {% endif %}
+                <tr>
+                    <td scope="row">{{ produtos[saldo.produto_id].codigo }}</td>
+                    <td>{{ produtos[saldo.produto_id].nome }}</td>
+                    <td>{{ saldo.quantidade_inicial }}</td>
+                    <td>{{ saldo.quantidade_entrada }}</td>
+                    <td>{{ saldo.quantidade_saida }}</td>
+                    <td style="color: {{ cor }};">{{ saldo.quantidade_final }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+
+
+</div>
+</div>
+</div>
+
+
+
+<div class="modal fade" id="addSaidaModal" tabindex="-1" aria-labelledby="addSaidaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form action="{{ url_for('saidas.cadastro_saida') }}" method="POST">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="addSaidaModalLabel">Adicionar saida</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            <div class="mb-3">
+                <label for="produto_id" class="form-label">Produto</label>
+                <select id="produto_id" name="produto_id" class="form-select">
+                    {% for produto_id, produto in produtos.items() %}
+                    {% if produto.status == 'ativo' or session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+                        <option value="{{ produto_id }}">{{ produto.nome }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="destino_id" class="form-label">Destino</label>
+                <select id="destino_id" name="destino_id" class="form-select">
+                    {% for destino_id, destino in destinos.items() %}
+                        <option value="{{ destino_id }}">{{ destino.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="data_saida" class="form-label">Data</label>
+                <input id="data_saida" name="data_saida" type="date" class="form-control" value="{{ data }}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="quantidade" class="form-label">Quantidade</label>
+                <input id="quantidade" name="quantidade" type="number" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="marca_id" class="form-label">Marca</label>
+                <select id="marca_id" name="marca_id" class="form-select">
+                  <option value="0">Selecione uma marca</option>
+                  {% for marca_id, marca in marcas.items() %}
+                  {% if marca.nome != "-" %}
+                    <option value="{{ marca_id }}">{{ marca.nome }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="data_validade" class="form-label">Data de Validade</label>
+                <input id="data_validade" name="data_validade" type="date" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label for="fornecedor_id" class="form-label">Fornecedor</label>
+                <select id="fornecedor_id" name="fornecedor_id" class="form-select">
+                  <option value="0">Selecione um fornecedor</option>
+                  {% for fornecedor_id, fornecedor in fornecedores.items() %}
+                  {% if fornecedor.nome != "-" %}
+                    <option value="{{ fornecedor_id }}">{{ fornecedor.nome }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="nota_fiscal_id" class="form-label">Nota fiscal</label>
+                <select id="nota_fiscal_id" name="nota_fiscal_id" class="form-select">
+                  <option value="0">Selecione uma nota fiscal</option>
+                  {% for nota_fiscal_id, nota_fiscal in notas_fiscais.items() %}
+                  {% if nota_fiscal.numero != "-" %}
+                    <option value="{{ nota_fiscal_id }}">{{ nota_fiscal.numero }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="observacao" class="form-label">Observação</label>
+                <input id="observacao" name="observacao" type="text" class="form-control">
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Adicionar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="addEntradaModal" tabindex="-1" aria-labelledby="addEntradaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form action="{{ url_for('entradas.cadastro_entrada') }}" method="POST">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="addEntradaModalLabel">Adicionar entrada</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            <div class="mb-3">
+                <label for="produto_id" class="form-label">Produto</label>
+                <select id="produto_id" name="produto_id" class="form-select">
+                    {% for produto_id, produto in produtos.items() %}
+                        <option value="{{ produto_id }}">{{ produto.nome }}</option>
+                    {% else %}
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="data_entrada" class="form-label">Data</label>
+                <input id="data_entrada" name="data_entrada" type="date" class="form-control" value="{{ data }}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="quantidade" class="form-label">Quantidade</label>
+                <input id="quantidade" name="quantidade" type="number" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="marca_id" class="form-label">Marca</label>
+                <select id="marca_id" name="marca_id" class="form-select">
+                  <option value="0">Selecione uma marca</option>
+                  {% for marca_id, marca in marcas.items() %}
+                  {% if marca.nome != "-" %}
+                  <option value="{{ marca_id }}">{{ marca.nome }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="data_validade" class="form-label">Data de Validade</label>
+                <input id="data_validade" name="data_validade" type="date" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label for="fornecedor_id" class="form-label">Fornecedor</label>
+                <select id="fornecedor_id" name="fornecedor_id" class="form-select">
+                  <option value="0">Selecione um fornecedor</option>
+                  {% for fornecedor_id, fornecedor in fornecedores.items() %}
+                  {% if fornecedor.nome != "-" %}
+                  <option value="{{ fornecedor_id }}">{{ fornecedor.nome }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="nota_fiscal_id" class="form-label">Nota fiscal</label>
+                <select id="nota_fiscal_id" name="nota_fiscal_id" class="form-select">
+                  <option value="0">Selecione uma nota fiscal</option>
+                  {% for nota_fiscal_id, nota_fiscal in notas_fiscais.items() %}
+                  {% if nota_fiscal.numero != "-" %}
+                  <option value="{{ nota_fiscal_id }}">{{ nota_fiscal.numero }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="observacao" class="form-label">Observação</label>
+                <input id="observacao" name="observacao" type="text" class="form-control">
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Adicionar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="editSaidaModal" tabindex="-1" aria-labelledby="editSaidaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form id="editSaidaForm" method="POST">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="editSaidaModalLabel">Editar saida</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            <div class="mb-3">
+                <label for="edit_produto_id_saida" class="form-label">Produto</label>
+                <select id="edit_produto_id_saida" name="edit_produto_id_saida" class="form-select" disabled>
+                    {% for produto_id, produto in produtos.items() %}
+                        <option value="{{ produto_id }}">{{ produto.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_destino_id_saida" class="form-label">Destino</label>
+                <select id="edit_destino_id_saida" name="edit_destino_id_saida" class="form-select">
+                    {% for destino_id, destino in destinos.items() %}
+                        <option value="{{ destino_id }}">{{ destino.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="edit_data_saida" class="form-label">Data</label>
+                <input id="edit_data_saida" name="edit_data_saida" type="date" class="form-control" value="{{ data }}" disabled>
+            </div>
+            
+            <div class="mb-3">
+                <label for="edit_quantidade_saida" class="form-label">Quantidade</label>
+                <input id="edit_quantidade_saida" name="edit_quantidade_saida" type="number" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_marca_id_saida" class="form-label">Marca</label>
+                <select id="edit_marca_id_saida" name="edit_marca_id_saida" class="form-select">
+                  {% for marca_id, marca in marcas.items() %}
+                    <option value="{{ marca_id }}">{{ marca.nome }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_data_validade_saida" class="form-label">Data de Validade</label>
+                <input id="edit_data_validade_saida" name="edit_data_validade_saida" type="date" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_fornecedor_id_saida" class="form-label">Fornecedor</label>
+                <select id="edit_fornecedor_id_saida" name="edit_fornecedor_id_saida" class="form-select">
+                  {% for fornecedor_id, fornecedor in fornecedores.items() %}
+                    <option value="{{ fornecedor_id }}">{{ fornecedor.nome }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_nota_fiscal_id_saida" class="form-label">Nota fiscal</label>
+                <select id="edit_nota_fiscal_id_saida" name="edit_nota_fiscal_id_saida" class="form-select">
+                  {% for nota_fiscal_id, nota_fiscal in notas_fiscais.items() %}
+                    <option value="{{ nota_fiscal_id }}">{{ nota_fiscal.numero }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_observacao_saida" class="form-label">Observação</label>
+                <input id="edit_observacao_saida" name="edit_observacao_saida" type="text" class="form-control">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Editar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="editEntradaModal" tabindex="-1" aria-labelledby="editEntradaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form id="editEntradaForm" method="POST">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="editEntradaModalLabel">Editar entrada</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            <div class="mb-3">
+                <label for="edit_produto_id_entrada" class="form-label">Produto</label>
+                <select id="edit_produto_id_entrada" name="edit_produto_id_entrada" class="form-select" disabled>
+                    {% for produto_id, produto in produtos.items() %}
+                        <option value="{{ produto_id }}">{{ produto.nome }}</option>
+                    {% else %}
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="edit_data_entrada" class="form-label">Data</label>
+                <input id="edit_data_entrada" name="edit_data_entrada" type="date" class="form-control" value="{{ data }}" disabled>
+            </div>
+            
+            <div class="mb-3">
+                <label for="edit_quantidade_entrada" class="form-label">Quantidade</label>
+                <input id="edit_quantidade_entrada" name="edit_quantidade_entrada" type="number" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_marca_id_entrada" class="form-label">Marca</label>
+                <select id="edit_marca_id_entrada" name="edit_marca_id_entrada" class="form-select">
+                  {% for marca_id, marca in marcas.items() %}
+                    <option value="{{ marca_id }}">{{ marca.nome }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_data_validade_entrada" class="form-label">Data de Validade</label>
+                <input id="edit_data_validade_entrada" name="edit_data_validade_entrada" type="date" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_fornecedor_id_entrada" class="form-label">Fornecedor</label>
+                <select id="edit_fornecedor_id_entrada" name="edit_fornecedor_id_entrada" class="form-select">
+                  {% for fornecedor_id, fornecedor in fornecedores.items() %}
+                    <option value="{{ fornecedor_id }}">{{ fornecedor.nome }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_nota_fiscal_id_entrada" class="form-label">Nota fiscal</label>
+                <select id="edit_nota_fiscal_id_entrada" name="edit_nota_fiscal_id_entrada" class="form-select">
+                  {% for nota_fiscal_id, nota_fiscal in notas_fiscais.items() %}
+                    <option value="{{ nota_fiscal_id }}">{{ nota_fiscal.numero }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_observacao_entrada" class="form-label">Observação</label>
+                <input id="edit_observacao_entrada" name="edit_observacao_entrada" type="text" class="form-control">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Editar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    const campoData = document.getElementById('date');
+
+    campoData.addEventListener('change', function() {
+        document.getElementById('formData').submit();
+    })
+
+    function fillSaidaEditForm(id, produto_id, destino, data, quantidade, marca_id, data_validade, fornecedor_id, nota_fiscal_id, observacao) {
+        document.getElementById("edit_produto_id_saida").value = produto_id;
+        document.getElementById("edit_destino_id_saida").value = destino;
+        document.getElementById("edit_data_saida").value = data;
+        document.getElementById("edit_quantidade_saida").value = quantidade;
+        document.getElementById("edit_marca_id_saida").value = marca_id;
+        document.getElementById("edit_data_validade_saida").value = data_validade;
+        document.getElementById("edit_fornecedor_id_saida").value = fornecedor_id;
+        document.getElementById("edit_nota_fiscal_id_saida").value = nota_fiscal_id;
+        document.getElementById("edit_observacao_saida").value = observacao;
+
+        document.getElementById("editSaidaForm").action = "{{ url_for('saidas.editar_saida', saida_id=0) }}".replace('0', id);
+    }
+
+    function fillEntradaEditForm(id, produto_id, data, quantidade, marca_id, data_validade, fornecedor_id, nota_fiscal_id, observacao) {
+        document.getElementById("edit_produto_id_entrada").value = produto_id;
+        document.getElementById("edit_data_entrada").value = data;
+        document.getElementById("edit_quantidade_entrada").value = quantidade;
+        document.getElementById("edit_marca_id_entrada").value = marca_id;
+        document.getElementById("edit_data_validade_entrada").value = data_validade;
+        document.getElementById("edit_fornecedor_id_entrada").value = fornecedor_id;
+        document.getElementById("edit_nota_fiscal_id_entrada").value = nota_fiscal_id;
+        document.getElementById("edit_observacao_entrada").value = observacao;
+
+        document.getElementById("editEntradaForm").action = "{{ url_for('entradas.editar_entrada', entrada_id=0) }}".replace('0', id);
+    }
+</script>
+
+{% endblock %}
