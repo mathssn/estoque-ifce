@@ -1,0 +1,61 @@
+
+.navbar-custom {
+  background-color: #4CAF50;
+  font-weight: 500;
+}
+
+.navbar-custom .nav-link {
+  color: white;
+  position: relative;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.navbar-custom .nav-link:hover {
+  color: white;
+  transform: translateY(-2px);
+}
+
+.navbar-custom .nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 0;
+  height: 2px;
+  background-color: white;
+  transition: width 0.3s;
+}
+
+.navbar-custom .nav-link:hover::after {
+  width: 100%;
+}
+
+/* Ícones do lado direito */
+.user-menu {
+  color: white;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+.user-menu:hover {
+  color: white;
+}
+
+/* Botão Login */
+.navbar-custom .btn-light {
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.navbar-custom .btn-light:hover {
+  background-color: white;
+  color: white;
+}
+
+.navbar-custom .navbar-toggler {
+  border-color: white; /* borda branca */
+}
+
+.navbar-custom .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,255,255, 1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+}

@@ -1,0 +1,80 @@
+<script>
+    const campoData = document.getElementById('date');
+
+    campoData.addEventListener('change', function() {
+        document.getElementById('formData').submit();
+    })
+
+    function fillSaidaEditForm(id, produto_id, refeicao, data, quantidade, marca_id, data_validade, fornecedor_id, nota_fiscal_id, observacao) {
+        document.getElementById("edit_produto_id_saida").value = produto_id;
+        document.getElementById("edit_refeicao_id_saida").value = refeicao;
+        document.getElementById("edit_data_saida").value = data;
+        document.getElementById("edit_quantidade_saida").value = quantidade;
+        document.getElementById("edit_marca_id_saida").value = marca_id;
+        document.getElementById("edit_data_validade_saida").value = data_validade;
+        document.getElementById("edit_fornecedor_id_saida").value = fornecedor_id;
+        document.getElementById("edit_nota_fiscal_id_saida").value = nota_fiscal_id;
+        document.getElementById("edit_observacao_saida").value = observacao;
+
+        document.getElementById("editSaidaForm").action = "{{ url_for('saidas.editar_saida', saida_id=0) }}".replace('0', id);
+    }
+
+    function fillEntradaEditForm(id, produto_id, data, quantidade, marca_id, data_validade, fornecedor_id, nota_fiscal_id, observacao) {
+        document.getElementById("edit_produto_id_entrada").value = produto_id;
+        document.getElementById("edit_data_entrada").value = data;
+        document.getElementById("edit_quantidade_entrada").value = quantidade;
+        document.getElementById("edit_marca_id_entrada").value = marca_id;
+        document.getElementById("edit_data_validade_entrada").value = data_validade;
+        document.getElementById("edit_fornecedor_id_entrada").value = fornecedor_id;
+        document.getElementById("edit_nota_fiscal_id_entrada").value = nota_fiscal_id;
+        document.getElementById("edit_observacao_entrada").value = observacao;
+
+        document.getElementById("editEntradaForm").action = "{{ url_for('entradas.editar_entrada', entrada_id=0) }}".replace('0', id);
+    }
+
+    const toggleDetalheSaidaBtn = document.getElementById("toggleDetalheSaidaBtn");
+    const detalhesCols = document.querySelectorAll(".col-detalhe-saida");
+
+    let detalheSaidaResumoAtivo = true; // começa no modo resumo
+
+    // função para atualizar a visão
+    function atualizarVisaoSaida() {
+      detalhesCols.forEach(col => {
+        col.style.display = detalheSaidaResumoAtivo ? "none" : "";
+      });
+
+      toggleDetalheSaidaBtn.textContent = detalheSaidaResumoAtivo ? "Ver detalhes" : "Ver resumo";
+    }
+
+    // já aplica a configuração inicial
+    atualizarVisaoSaida();
+
+    // alterna ao clicar
+    toggleDetalheSaidaBtn.addEventListener("click", () => {
+      detalheSaidaResumoAtivo = !detalheSaidaResumoAtivo;
+      atualizarVisaoSaida();
+    });
+
+    const toggleDetalheEntradaBtn = document.getElementById("toggleDetalheEntradaBtn");
+    const detalhesECols = document.querySelectorAll(".col-detalhe-entrada");
+
+    let detalheEntradaResumoAtivo = true; // começa no modo resumo
+
+    // função para atualizar a visão
+    function atualizarVisaoEntrada() {
+      detalhesECols.forEach(col => {
+        col.style.display = detalheEntradaResumoAtivo ? "none" : "";
+      });
+
+      toggleDetalheEntradaBtn.textContent = detalheEntradaResumoAtivo ? "Ver detalhes" : "Ver resumo";
+    }
+
+    // já aplica a configuração inicial
+    atualizarVisaoEntrada();
+
+    // alterna ao clicar
+    toggleDetalheEntradaBtn.addEventListener("click", () => {
+      detalheEntradaResumoAtivo = !detalheEntradaResumoAtivo;
+      atualizarVisaoEntrada();
+    });
+</script>

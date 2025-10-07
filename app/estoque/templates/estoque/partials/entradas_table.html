@@ -1,0 +1,71 @@
+
+{% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+{% if dia and not dia.fechado %}
+<div style="display: flex; justify-content: center; margin-top: 15px;">
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEntradaModal" style="margin: 10px;">
+    Cadastrar nova entrada
+  </button>
+</div>
+{% endif %}
+{% endif %}
+
+<div class="container mt-5">
+<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+  <div class="card-body">
+  <button id="toggleDetalheEntradaBtn" class="btn btn-primary mb-3">Ver resumo</button>
+    <div class="table-responsive" style="overflow-x: auto; width: 100%;">
+
+        <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Cód.</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Unid.</th>
+                <th scope="col">Qntd.</th>
+                <th scope="col" class="col-detalhe-entrada">Marca</th>
+                <th scope="col" class="col-detalhe-entrada">Validade</th>
+                <th scope="col" class="col-detalhe-entrada">Fornecedor</th>
+                <th scope="col" class="col-detalhe-entrada">Nota fiscal</th>
+                <th scope="col" class="col-detalhe-entrada">Observação</th>
+                <th scope="col" class="col-detalhe-entrada">Responsavel</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+          {% for entrada in entradas %}
+          <tr>
+              <td>{{ produtos.get(entrada.produto_id).codigo }}</td>
+              <td>{{ produtos.get(entrada.produto_id).nome }}</td>
+              <td>{{ produtos.get(entrada.produto_id).unidade }}</td>
+              <td>{{ entrada.quantidade }}</td>
+              <td class="col-detalhe-entrada">{{ marcas.get(entrada.marca_id).nome }}</td>
+              <td class="col-detalhe-entrada">{{ entrada.data_validade | format_date }}</td>
+              <td class="col-detalhe-entrada">{{ fornecedores.get(entrada.fornecedor_id).nome }}</td>
+              <td class="col-detalhe-entrada">{{ notas_fiscais.get(entrada.nota_fiscal_id).numero }}</td>
+              <td class="col-detalhe-entrada">{{ entrada.observacao }}</td>
+              <td class="col-detalhe-entrada">{{ usuarios.get(entrada.usuario_id) }}</td>
+              <td>
+                {% if dia != None %}
+                  {% if dia.fechado == False and session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+                  <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEntradaModal" onclick="fillEntradaEditForm('{{entrada.id}}', '{{entrada.produto_id}}', '{{entrada.data_entrada}}', '{{entrada.quantidade}}', '{{entrada.marca_id}}', '{{entrada.data_validade}}', '{{entrada.fornecedor_id}}', '{{entrada.nota_fiscal_id}}', '{{entrada.observacao}}')">Editar</button>
+                    <form action="{{ url_for('entradas.excluir_entrada', entrada_id=entrada.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta entrada?')">
+                      <button type="submit" class="btn btn-danger">Excluir</button>
+                    </form>
+                  </div>
+                  {% else %}
+                    <button class="btn btn-secondary">Editar</button>
+                    <button class="btn btn-secondary">Excluir</button>
+                  {% endif %}
+                  {% else %}
+                    <button class="btn btn-secondary">Editar</button>
+                    <button class="btn btn-secondary">Excluir</button>
+                  {% endif %}
+              </td>
+          {% endfor %}
+          </tbody>
+</table>
+</div>
+</div>
+</div>
+</div>

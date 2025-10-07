@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<div>
+  <a href="{{ url_for('atas.ata_info', ata_id=empenho.ata_id) }}" class="btn btn-secondary m-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+</div>
+
+<div class="container py-4">
+  <div class="page-title mb-4">
+    <h2 class="fw-bold border-bottom pb-2">
+      Empenho {{ empenho.numero | format_empenho(empenho.ano) }}
+    </h2>
+  </div>
+
+
+<div class="card shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+  <div class="card-body">
+    <form>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Fornecedor</label>
+        <p class="form-control">{{ fornecedor.nome }}</p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Valor total</label>
+        <p class="form-control">{{ total | format_money }}</p>
+      </div>
+    </div>
+    <div class="row mb-3 2-100">
+      <div class="col-md-6 w-100">
+        <label class="form-label fw-semibold w-100">Valor restante</label>
+        <p class="form-control">{{ total_restante | format_money }}</p>
+      </div>
+    </div>
+    </form>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="container mt-5">
+<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+  <div class="card-body">
+    <div class="table-responsive">
+
+        <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Cod.</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Qntd. Empenhada</th>
+                <th scope="col">Valor Unitário</th>
+                <th scope="col">Valor Total</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+
+            {% for item in itens %}
+                <tr>
+                    <td>{{ produtos.get(item.produto_id).codigo }}</td>
+                    <td>{{ produtos.get(item.produto_id).nome }}</td>
+                    <td>{{ item.quantidade_empenhada }}</td>
+                    <td>{{ item.valor_unitario | format_money }}</td>
+                    <td>{{ item.total | format_money }}</td>
+                    <td style="display: flex; gap: 10px;">
+                      {% if ata.status.value == 'ativo' and empenho.status.value == 'ativo' and session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editItemEmpenhoModal" onclick="fillEditItemForm('{{item.id}}', '{{item.produto_id}}', '{{item.quantidade_empenhada}}', '{{item.valor_unitario | format_money(False) }}')">Editar</button>
+                      {% else %}
+                        <button type="button" class="btn btn-secondary">Editar</button>
+                      {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+{% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] and ata.status.value == 'ativo' and empenho.status.value == 'ativo' %}
+<div style="display: flex; justify-content: center; margin-top: 25px;">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroNFModal">
+        Cadastrar nova nota fiscal
+    </button>
+</div>
+{% endif %}
+
+<div class="container mt-5">
+  <div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+    <div class="card-body">
+
+      <!-- Botão para alternar -->
+      <button id="toggleNotasBtn" class="btn btn-primary mb-3">Ver resumo</button>
+
+      <div class="table-responsive" style="width: 100%; table-layout: auto; white-space: nowrap;">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th scope="col">Cod.</th>
+              <th scope="col">Nome</th>
+              <th scope="col">Qntd. Empenhada</th>
+              <th scope="col">Valor Unitário</th>
+              {% for nota in notas_fiscais %}
+                <th scope="col" class="col-nota">
+                  <a href="{{ url_for('notas_fiscais.nota_info', nota_id=nota.id, origem='empenho') }}" 
+                     style="color: red; text-decoration: none;">
+                     NF {{ nota.numero }}
+                  </a>
+                </th>
+              {% endfor %}
+              <th scope="col">Recebido</th>  
+              <th scope="col">Saldo</th>  
+              <th scope="col">Valor restante</th>  
+            </tr>
+          </thead>
+          
+          <tbody>
+            {% for item in itens %}
+              {% if item.quantidade_empenhada > 0 %}
+              <tr>
+                <td>{{ produtos.get(item.produto_id).codigo }}</td>
+                <td>{{ produtos.get(item.produto_id).nome }}</td>
+                <td>{{ item.quantidade_empenhada }}</td>
+                <td>{{ item.valor_unitario | format_money }}</td>
+
+                {% for nota in notas_fiscais %}
+                  {% for it in notas_itens.get(nota.id) %}
+                    {% if it.produto_id == item.produto_id %}
+                      <td class="col-nota">{{ it.quantidade }}</td>
+                    {% endif %}
+                  {% endfor %}
+                {% endfor %}
+
+                <td>{{ item.recebido }}</td>
+                <td>{{ item.saldo }}</td>
+                <td>{{ item.valor_restante | format_money }}</td>
+              </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="editItemEmpenhoModal" tabindex="-1" aria-labelledby="editItemEmpenhoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="editItemEmpenhoForm" method="POST">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editItemEmpenhoModalLabel">Editar Item</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <div class="mb-3">
+            <label for="edit_produto_id" class="form-label">Produto</label>
+            <select id="edit_produto_id" name="edit_produto_id" class="form-select" disabled>
+              {% for produto_id, produto in produtos.items() %}
+                <option value="{{ produto_id }}">{{ produto.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_quantidade_empenhada" class="form-label">Quantidade Empenhada</label>
+            <input id="edit_quantidade_empenhada" name="edit_quantidade_empenhada" type="number" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_valor_unitario" class="form-label">Valor Unitário</label>
+            <input id="edit_valor_unitario" name="edit_valor_unitario" type="text" class="form-control" disabled>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="cadastroNFModal" tabindex="-1" aria-labelledby="cadastroNFModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form action="{{ url_for('notas_fiscais.cadastro_nota') }}" method="POST">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="cadastroNFModalLabel">Cadastrar Nota Fiscal</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            <input type="hidden" name="fornecedor_id" id="fornecedor_id" value="{{ fornecedor.id }}">
+            <input type="hidden" name="empenho_id" id="empenho_id" value="{{ empenho.id }}">
+            <input type="hidden" name="origem" id="origem" value="empenho">
+
+            <div class="mb-3">
+                <label for="numero" class="form-label">Número</label>
+                <input id="numero" name="numero" type="number" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="serie" class="form-label">Série</label>
+                <input id="serie" name="serie" type="number" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="data_emissao" class="form-label">Data de Emissão</label>
+                <input id="data_emissao" name="data_emissao" type="date" class="form-control" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Cadastrar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+    function fillEditItemForm(id, produto_id, quantidade_empenhada, valor_unitario) {
+        document.getElementById("edit_produto_id").value = produto_id;
+        document.getElementById("edit_quantidade_empenhada").value = quantidade_empenhada;
+        document.getElementById("edit_valor_unitario").value = valor_unitario;
+
+        document.getElementById("editItemEmpenhoForm").action = "{{ url_for('empenhos.editar_item_empenho', item_id=0) }}".replace('0', id);
+    }
+
+    const toggleNotasBtn = document.getElementById("toggleNotasBtn");
+    const notasCols = document.querySelectorAll(".col-nota");
+
+    let notasResumoAtivo = false;
+
+    toggleNotasBtn.addEventListener("click", () => {
+      notasResumoAtivo = !notasResumoAtivo;
+
+      notasCols.forEach(col => {
+        col.style.display = notasResumoAtivo ? "none" : "";
+      });
+
+      toggleNotasBtn.textContent = notasResumoAtivo ? "Ver detalhes" : "Ver resumo";
+    });
+
+  const modalItemEmp = document.getElementById('editItemEmpenhoModal');
+  modalItemEmp.addEventListener('shown.bs.modal', function () {
+    const input = document.getElementById('edit_quantidade_empenhada');
+    input.focus();
+  });
+
+  const modalNF = document.getElementById('cadastroNFModal');
+  modalNF.addEventListener('shown.bs.modal', function () {
+    const input = document.getElementById('numero');
+    input.focus();
+  });
+</script>
+
+{% endblock %}

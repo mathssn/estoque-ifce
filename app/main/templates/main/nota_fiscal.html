@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div>
+{% if origem == 'empenho' %}
+    <a href="{{ url_for('empenhos.empenho_info', empenho_id=nota_fiscal.empenho_id) }}" class="btn btn-secondary m-3">
+{% else %}
+    <a href="{{ url_for('notas_fiscais.notas_lista') }}" class="btn btn-secondary m-3">
+{% endif %}
+        <i class="bi bi-arrow-left"></i>
+    </a>
+</div>
+
+<div class="container py-4">
+  <div class="page-title mb-4">
+    <h2 class="fw-bold border-bottom pb-2">
+      Nota fiscal N° {{ nota_fiscal.numero }}
+    </h2>
+  </div>
+
+
+<div class="card shadow" style="border: 0px;">
+  <div class="card-body">
+    <form>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Fornecedor</label>
+        <p class="form-control">{{ fornecedor.nome }}</p>
+      </div>
+      <div class="col-md-6">  
+        <label class="form-label fw-semibold">Valor total</label>
+        <p class="form-control">{{ total | format_money }}</p>
+      </div>
+    </div>
+    </form>
+  </div>
+</div>
+</div>
+
+
+<div class="container mt-5">
+<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+  <div class="card-body">
+    <div class="table-responsive">
+
+        <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Cod.</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Qntd</th>
+                <th scope="col">Valor Unitário</th>
+                <th scope="col">Valor Total</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+
+            {% for item in itens %}
+              {% if item.disponivel == True %}
+                <tr>
+                    <td>{{ produtos.get(item.produto_id).codigo }}</td>
+                    <td>{{ produtos.get(item.produto_id).nome }}</td>
+                    <td>{{ item.quantidade }}</td>
+                    <td>{{ item.valor_unitario | format_money }}</td>
+                    <td>{{ item.total | format_money }}</td>
+                    <td style="display: flex; gap: 10px;">
+                      {% if ata.status.value == 'ativo' and empenho.status.value == 'ativo' and session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editItemNFModal" onclick="fillEditItemForm('{{item.id}}', '{{item.produto_id}}', '{{item.quantidade}}', '{{item.valor_unitario | format_money(False) }}')">Editar</button>
+                      {% else %}
+                        <button type="button" class="btn btn-secondary">Editar</button>
+                      {% endif %}
+                    </td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+</div>
+</div>
+
+
+
+
+<div class="modal fade" id="editItemNFModal" tabindex="-1" aria-labelledby="editItemNFLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="editItemNFForm" method="POST">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editItemNFModalLabel">Editar Item</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <div class="mb-3">
+            <label for="edit_produto_id" class="form-label">Produto</label>
+            <select id="edit_produto_id" name="edit_produto_id" class="form-select" disabled>
+              {% for produto_id, produto in produtos.items() %}
+                <option value="{{ produto_id }}">{{ produto.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_quantidade" class="form-label">Quantidade</label>
+            <input id="edit_quantidade" name="edit_quantidade" type="number" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_valor_unitario" class="form-label">Valor Unitário</label>
+            <input id="edit_valor_unitario" name="edit_valor_unitario" type="text" class="form-control" disabled>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<script>
+    function fillEditItemForm(id, produto_id, quantidade, valor_unitario) {
+        document.getElementById("edit_produto_id").value = produto_id;
+        document.getElementById("edit_quantidade").value = quantidade;
+        document.getElementById("edit_valor_unitario").value = valor_unitario;
+
+        document.getElementById("editItemNFForm").action = "{{ url_for('notas_fiscais.editar_item_nf', item_id=0) }}".replace('0', id);
+    }
+
+  const modal = document.getElementById('editItemNFModal');
+  modal.addEventListener('shown.bs.modal', function () {
+    const input = document.getElementById('edit_quantidade');
+    input.focus();
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<div>
+  <a href="{{ url_for('main.estoque_menu') }}" class="btn btn-secondary m-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+</div>
+
+
+<div class="container py-4">
+  <div class="page-title mb-4">
+    <h2 class="fw-bold border-bottom pb-2">
+      Marcas
+    </h2>
+  </div>
+</div>
+
+{% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+<div style="display: flex; justify-content: center;">
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroMarcaModal" style="margin: 10px;">
+    Cadastrar nova marca
+  </button>
+</div>
+{% endif %}
+
+<div class="container mt-5">
+<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+  <div class="card-body">
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Nome</th>
+          <th scope="col">Produto</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for marca in marcas %}
+        {% if marca.produto_id != None %}
+        <tr>
+          <td>{{ marca.nome }}</td>
+          <td>{{ produtos[marca.produto_id].nome }}</td>
+          <td style="display: flex; gap: 10px;">
+            {% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editMarcaModal"
+            data-id="{{ marca.id }}"
+            data-nome="{{ marca.nome }}"
+            data-produto="{{ marca.produto_id}}">
+            Editar
+          </button>
+          {% else %}
+          <button class="btn btn-secondary">Editar</button>
+          {% endif %}
+          </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+</div>
+
+
+{% if marcas | length > 0 %}
+<nav aria-label="Navegação de páginas">
+  <ul class="pagination justify-content-center">
+
+    {% if page > 1 %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('marcas.marcas_lista', page=page-1) }}">
+          Anterior
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Anterior</span>
+      </li>
+    {% endif %}
+
+    <li class="page-item disabled">
+      <span class="page-link">
+        Página {{ page }} de {{ total_pages }}
+      </span>
+    </li>
+
+    {% if page < total_pages %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('marcas.marcas_lista', page=page+1) }}">
+          Próxima
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Próxima</span>
+      </li>
+    {% endif %}
+
+  </ul>
+</nav>
+{% endif %}
+
+<!-- Modal Cadastro -->
+<div class="modal fade" id="cadastroMarcaModal" tabindex="-1" aria-labelledby="cadastroMarcaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ url_for('marcas.cadastro_marca') }}" method="POST">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="cadastroMarcaModalLabel">Cadastrar Marca</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="nome" class="form-label">Nome</label>
+            <input id="nome" name="nome" type="text" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="produto_id" class="form-label">Produto</label>
+            <select id="produto_id" name="produto_id" class="form-select" required>
+              {% for p_id, p in produtos.items() %}
+                {% if p.status == 'ativo' or session.get('nivel_acesso') in ['Superusuario', 'Admin']%}
+                  <option value="{{ p_id }}">{{ p.nome }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-primary">Cadastrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal fade" id="editMarcaModal" tabindex="-1" aria-labelledby="editMarcaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="editMarcaForm" method="POST">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editMarcaModalLabel">Editar Marca</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="edit_nome" class="form-label">Nome</label>
+            <input id="edit_nome" name="edit_nome" type="text" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_produto_id" class="form-label">Produto</label>
+            <select id="edit_produto_id" name="edit_produto_id" class="form-select" required>
+              {% for p_id, p in produtos.items() %}
+                {% if p.status == 'ativo' or session.get('nivel_acesso') in ['Superusuario', 'Admin']%}
+                  <option value="{{ p_id }}">{{ p.nome }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+    document.querySelectorAll('[data-bs-target="#editMarcaModal"]').forEach(button => {
+  button.addEventListener('click', () => {
+    document.getElementById("edit_nome").value = button.dataset.nome;
+    document.getElementById("edit_produto_id").value = button.dataset.produto;
+    document.getElementById("editMarcaForm").action = "{{ url_for('marcas.editar_marca', marca_id=0) }}".replace('0', button.dataset.id);
+  });
+});
+
+  const modal = document.getElementById('cadastroMarcaModal');
+  modal.addEventListener('shown.bs.modal', function () {
+    const input = document.getElementById('nome');
+    input.focus();
+  });
+
+  const editModal = document.getElementById('editMarcaModal');
+  editModal.addEventListener('shown.bs.modal', function () {
+    const input = document.getElementById('edit_nome');
+    input.focus();
+  });
+
+</script>
+
+{% endblock %}

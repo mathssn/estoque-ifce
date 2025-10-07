@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div>
+  <a href="{{ url_for('main.estoque_menu') }}" class="btn btn-secondary m-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+</div>
+
+
+<div class="container py-4">
+    <div class="d-grid gap-3">
+        <a href="{{ url_for('relatorios.relatorios_periodo') }}" class="btn btn-outline-success btn-lg">Relatórios por periodo</a>
+        <a href="{{ url_for('relatorios.relatorio_produto') }}" class="btn btn-outline-success btn-lg">Relatórios de produtos</a>
+    </div>
+    
+</div>
+
+{% endblock %}

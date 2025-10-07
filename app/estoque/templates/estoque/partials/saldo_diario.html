@@ -1,0 +1,49 @@
+
+{% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+{% if dia and not dia.fechado %}
+<div style="display: flex; justify-content: center; margin-bottom: 15px; margin-top: 25px;">
+  <a type="button" class="btn btn-primary" href="{{ url_for('estoque.fechar_dia', data=data) }}" onclick="return confirm('Tem certeza que deseja fechar o dia?')">Fechar dia</a>
+</div>
+{% endif %}
+{% endif %}
+
+<div class="container mt-5">
+<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+    <div class="table-responsive">
+
+        <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Cód.</th>
+                <th scope="col">Produto</th>
+                <th scope="col">Qntd. inicial</th>
+                <th scope="col">Qntd. entrada</th>
+                <th scope="col">Qntd. saida</th>
+                <th scope="col">Qntd. final</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+
+            {% for saldo in saldos_diarios %}
+            {% if produtos.get(saldo.produto_id).status == 'ativo' or session.get('nivel_acesso') in ['Superusuario'] %}
+                <tr>
+                    <td scope="row">{{ produtos.get(saldo.produto_id).codigo }}</td>
+                    <td>{{ produtos.get(saldo.produto_id).nome }}</td>
+                    <td>{{ saldo.quantidade_inicial }}</td>
+                    <td>{{ saldo.quantidade_entrada }}</td>
+                    <td>{{ saldo.quantidade_saida }}</td>
+                    {% if saldo.quantidade_final < produtos[saldo.produto_id].quantidade_minima and dia and not dia.fechado %}
+                        <td style="color: red;">{{ saldo.quantidade_final }}</td>
+                        {% else %}
+                        <td>{{ saldo.quantidade_final }}</td>
+                    {% endif %}
+                </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+</div>
+

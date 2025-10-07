@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+
+<div class="container py-4">
+  <div class="page-title mb-4">
+    <h2 class="fw-bold border-bottom pb-2">
+      Usuários
+    </h2>
+  </div>
+</div>
+
+
+<div style="display: flex; justify-content: center;">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroUsuarioModal">
+        Cadastrar novo usuário
+    </button>
+</div>
+
+
+<div class="container mt-5">
+<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+  <div class="card-body">
+    <div class="table-responsive">
+
+        <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Nome</th>
+                <th scope="col">Email</th>
+                <th scope="col">Data de nascimento</th>
+                <th scope="col">Nivel de Acesso</th>
+                <th scope="col">Status</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+
+            {% for usuario in usuarios %}
+                <tr>
+                    <td>{{ usuario.nome }}</td>
+                    <td>{{ usuario.email }}</td>
+                    <td>{{ usuario.data_nascimento | format_date }}</td>
+                    <td>{{ usuario.nivel_acesso.value }}</td>
+                    <td>{{ usuario.status.value }}</td>
+                    <td style="display: flex; gap: 10px;">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUsuarioModal" onclick="fillEditForm('{{usuario.id}}', '{{usuario.nome}}', '{{usuario.email}}', '{{usuario.data_nascimento}}', '{{usuario.nivel_acesso.value}}', '{{usuario.status.value}}')">Editar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#confirmarSenhaModal{{ usuario.id }}">
+                            Resetar senha
+                        </button>
+
+                        <div class="modal fade" id="confirmarSenhaModal{{ usuario.id }}" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form action="{{ url_for('usuarios.resetar_senha', user_id=usuario.id) }}" method="POST">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                <h5 class="modal-title">Confirme sua senha</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                </div>
+                                <div class="modal-body">
+                                <p>Você está prestes a resetar a senha de <strong>{{ usuario.nome }}</strong>. Confirme sua senha para continuar.</p>
+                                <div class="mb-3">
+                                    <label for="senha" class="form-label">Sua senha</label>
+                                    <input type="password" class="form-control" name="senha_confirmacao" required>
+                                </div>
+                                </div>
+                                <div class="modal-footer">
+                                <button type="submit" class="btn btn-danger">Confirmar</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                </div>
+                            </div>
+                            </form>
+                        </div>
+                        </div>
+                    </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+</div>
+</div>
+
+
+<div class="modal fade" id="cadastroUsuarioModal" tabindex="-1" aria-labelledby="cadastroUsuarioModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form action="{{ url_for('usuarios.cadastro_usuarios') }}" method="POST">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="cadastroUsuarioModalLabel">Cadastrar Produto</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome</label>
+                <input id="nome" name="nome" type="text" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input id="email" name="email" type="email" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="senha" class="form-label">Senha</label>
+                <input id="senha" name="senha" type="text" class="form-control" value="12345678" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="data_nascimento" class="form-label">Data de nascimento</label>
+                <input id="data_nascimento" name="data_nascimento" type="date" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="nivel_acesso" class="form-label">Nivel de acesso</label>
+                    <select id="nivel_acesso" name="nivel_acesso" class="form-select">
+                    {% for nivel in ['Superusuario', 'Admin', 'Editor', 'Leitor'] %}
+                        <option value="{{ nivel }}">{{ nivel }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Cadastrar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="editUsuarioModal" tabindex="-1" aria-labelledby="editUsuarioModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form id="editUsuarioForm" method="POST">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="editUsuarioModalLabel">Editar usuário</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            
+            <div class="mb-3">
+                <label for="edit_nome" class="form-label">Nome</label>
+                <input id="edit_nome" name="edit_nome" type="text" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_email" class="form-label">Email</label>
+                <input id="edit_email" name="edit_email" type="email" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_data_nascimento" class="form-label">Data de nascimento</label>
+                <input id="edit_data_nascimento" name="edit_data_nascimento" type="date" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_status" class="form-label">Status</label>
+                <select id="edit_status" name="edit_status" class="form-select">
+                    {% for st in ['ativo', 'inativo'] %}
+                        <option value="{{ st }}">{{ st }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_nivel_acesso" class="form-label">Nivel de acesso</label>
+                <select id="edit_nivel_acesso" name="edit_nivel_acesso" class="form-select">
+                    {% for nivel in ['Superusuario', 'Admin', 'Editor', 'Leitor'] %}
+                        <option value="{{ nivel }}">{{ nivel }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Editar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    function fillEditForm(id, nome, email, data_nascimento, nivel_acesso, status) {
+        document.getElementById("edit_nome").value = nome;
+        document.getElementById("edit_email").value = email;
+        document.getElementById("edit_data_nascimento").value = data_nascimento;
+        document.getElementById("edit_nivel_acesso").value = nivel_acesso;
+        document.getElementById("edit_status").value = status;
+
+        document.getElementById("editUsuarioForm").action = "{{ url_for('usuarios.editar_usuario', user_id=0) }}".replace('0', id);
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,86 @@
+
+<div class="modal fade" id="editSaidaModal" tabindex="-1" aria-labelledby="editSaidaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form id="editSaidaForm" method="POST">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="editSaidaModalLabel">Editar saida</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            <div class="mb-3">
+                <label for="edit_produto_id_saida" class="form-label">Produto</label>
+                <select id="edit_produto_id_saida" name="edit_produto_id_saida" class="form-select" disabled>
+                    {% for produto_id, produto in produtos.items() %}
+                    {% if produto.status == 'ativo' or session.get('nivel_acesso') in ['Superusuario'] %}
+                        <option value="{{ produto_id }}">{{ produto.nome }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_refeicao_id_saida" class="form-label">Refeição</label>
+                <select id="edit_refeicao_id_saida" name="edit_refeicao_id_saida" class="form-select">
+                    {% for refeicao_id, refeicao in refeicoes.items() %}
+                        <option value="{{ refeicao_id }}">{{ refeicao.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="edit_data_saida" class="form-label">Data</label>
+                <input id="edit_data_saida" name="edit_data_saida" type="date" class="form-control" value="{{ data }}" disabled>
+            </div>
+            
+            <div class="mb-3">
+                <label for="edit_quantidade_saida" class="form-label">Quantidade</label>
+                <input id="edit_quantidade_saida" name="edit_quantidade_saida" type="number" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_marca_id_saida" class="form-label">Marca</label>
+                <select id="edit_marca_id_saida" name="edit_marca_id_saida" class="form-select">
+                  {% for marca_id, marca in marcas.items() %}
+                    <option value="{{ marca_id }}">{{ marca.nome }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_data_validade_saida" class="form-label">Data de Validade</label>
+                <input id="edit_data_validade_saida" name="edit_data_validade_saida" type="date" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_fornecedor_id_saida" class="form-label">Fornecedor</label>
+                <select id="edit_fornecedor_id_saida" name="edit_fornecedor_id_saida" class="form-select">
+                  {% for fornecedor_id, fornecedor in fornecedores.items() %}
+                    <option value="{{ fornecedor_id }}">{{ fornecedor.nome }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_nota_fiscal_id_saida" class="form-label">Nota fiscal</label>
+                <select id="edit_nota_fiscal_id_saida" name="edit_nota_fiscal_id_saida" class="form-select">
+                  {% for nota_fiscal_id, nota_fiscal in notas_fiscais.items() %}
+                    <option value="{{ nota_fiscal_id }}">{{ nota_fiscal.numero }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_observacao_saida" class="form-label">Observação</label>
+                <input id="edit_observacao_saida" name="edit_observacao_saida" type="text" class="form-control">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+

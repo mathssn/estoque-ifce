@@ -1,0 +1,76 @@
+
+{% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+{% if dia and not dia.fechado %}
+<div style="display: flex; justify-content: center; margin-top: 15px;">
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSaidaModal" style="margin: 10px;">
+    Cadastrar nova saida
+  </button>
+</div>
+{% endif %}
+{% endif %}
+
+<div class="container mt-5">
+<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+  <div class="card-body">
+
+  <button id="toggleDetalheSaidaBtn" class="btn btn-primary mb-3">Ver resumo</button>
+  
+    <div class="table-responsive">
+
+        <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Cód.</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Refeição</th>
+                <th scope="col">Unid.</th>
+                <th scope="col">Qntd.</th>
+                <th scope="col" class="col-detalhe-saida">Marca</th>
+                <th scope="col" class="col-detalhe-saida">Validade</th>
+                <th scope="col" class="col-detalhe-saida">Fornecedor</th>
+                <th scope="col" class="col-detalhe-saida">Nota fiscal</th>
+                <th scope="col" class="col-detalhe-saida">Observação</th>
+                <th scope="col" class="col-detalhe-saida">Responsavel</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+          {% for saida in saidas %}
+            <tr>
+              <td>{{ produtos[saida.produto_id].codigo }}</td>
+              <td>{{ produtos[saida.produto_id].nome }}</td>
+              <td>{{ refeicoes[saida.refeicao_id].nome }}</td>
+              <td>{{ produtos[saida.produto_id].unidade }}</td>
+              <td>{{ saida.quantidade }}</td>
+              <td class="col-detalhe-saida">{{ marcas[saida.marca_id].nome }}</td>
+              <td class="col-detalhe-saida">{{ saida.data_validade | format_date }}</td>
+              <td class="col-detalhe-saida">{{ fornecedores[saida.fornecedor_id].nome }}</td>
+              <td class="col-detalhe-saida">{{ notas_fiscais[saida.nota_fiscal_id].numero }}</td>
+              <td class="col-detalhe-saida">{{ saida.observacao }}</td>
+              <td class="col-detalhe-saida">{{ usuarios[saida.usuario_id] }}</td>
+              <td>
+                {% if dia != None %}
+                  {% if dia.fechado == False and session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+                  <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editSaidaModal" onclick="fillSaidaEditForm('{{saida.id}}', '{{saida.produto_id}}', '{{saida.refeicao_id}}', '{{saida.data_saida}}', '{{saida.quantidade}}', '{{saida.marca_id}}', '{{saida.data_validade}}', '{{saida.fornecedor_id}}', '{{saida.nota_fiscal_id}}','{{saida.observacao}}')">Editar</button>
+                    <form action="{{ url_for('saidas.excluir_saida', saida_id=saida.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta saida?')">
+                      <button type="submit" class="btn btn-danger">Excluir</button>
+                    </form>
+                  </div>
+                  {% else %}
+                    <button class="btn btn-secondary">Editar</button>
+                    <button class="btn btn-secondary">Excluir</button>
+                  {% endif %}
+                  {% else %}
+                    <button class="btn btn-secondary">Editar</button>
+                    <button class="btn btn-secondary">Excluir</button>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+</table>
+</div>
+</div>
+</div>
+</div>

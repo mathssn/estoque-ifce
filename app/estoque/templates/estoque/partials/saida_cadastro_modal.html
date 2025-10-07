@@ -1,0 +1,92 @@
+
+<div class="modal fade" id="addSaidaModal" tabindex="-1" aria-labelledby="addSaidaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form action="{{ url_for('saidas.cadastro_saida') }}" method="POST">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="addSaidaModalLabel">Adicionar saida</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            <div class="mb-3">
+                <label for="produto_id" class="form-label">Produto</label>
+                <select id="produto_id" name="produto_id" class="form-select">
+                    {% for produto_id, produto in produtos.items() %}
+                    {% if (produto.status == 'ativo' or session.get('nivel_acesso') in ['Superusuario']) and produto.tipo.value == 'nao_perecivel' %}
+                        <option value="{{ produto_id }}">{{ produto.nome }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="refeicao_id" class="form-label">Refeição</label>
+                <select id="refeicao_id" name="refeicao_id" class="form-select">
+                    {% for refeicao_id, refeicao in refeicoes.items() %}
+                        <option value="{{ refeicao_id }}">{{ refeicao.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+              <input id="data_saida" name="data_saida" type="date" class="form-control" value="{{ data }}" hidden required>
+            
+            <div class="mb-3">
+                <label for="quantidade" class="form-label">Quantidade</label>
+                <input id="quantidade" name="quantidade" type="number" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="marca_id" class="form-label">Marca</label>
+                <select id="marca_id" name="marca_id" class="form-select">
+                  <option value="0">Selecione uma marca</option>
+                  {% for marca_id, marca in marcas.items() %}
+                  {% if marca.nome != "-" %}
+                    <option value="{{ marca_id }}">{{ marca.nome }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="data_validade" class="form-label">Data de Validade</label>
+                <input id="data_validade" name="data_validade" type="date" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label for="fornecedor_id" class="form-label">Fornecedor</label>
+                <select id="fornecedor_id" name="fornecedor_id" class="form-select">
+                  <option value="0">Selecione um fornecedor</option>
+                  {% for fornecedor_id, fornecedor in fornecedores.items() %}
+                  {% if fornecedor.nome != "-" %}
+                    <option value="{{ fornecedor_id }}">{{ fornecedor.nome }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="nota_fiscal_id" class="form-label">Nota fiscal</label>
+                <select id="nota_fiscal_id" name="nota_fiscal_id" class="form-select">
+                  <option value="0">Selecione uma nota fiscal</option>
+                  {% for nota_fiscal_id, nota_fiscal in notas_fiscais.items() %}
+                  {% if nota_fiscal.numero != "-" %}
+                    <option value="{{ nota_fiscal_id }}">{{ nota_fiscal.numero }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="observacao" class="form-label">Observação</label>
+                <input id="observacao" name="observacao" type="text" class="form-control">
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Cadastrar</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>

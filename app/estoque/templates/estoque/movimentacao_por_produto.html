@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div>
+  <a href="{{ url_for('produtos.produtos_lista') }}" class="btn btn-secondary m-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+</div>
+
+<div class="container py-4">
+  <div class="page-title mb-4">
+    <h2 class="fw-bold border-bottom pb-2">
+        Movimentação de {{ produto.nome }}
+    </h2>
+  </div>
+</div>
+
+{% if movimentacoes | length > 0 %}
+<div class="container mt-5">
+    <div class="table-responsive">
+
+        <table class="table table-striped table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Data</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Quantidade</th>
+                <th scope="col">Responsavel</th>
+                <th scope="col">Refeição</th>
+                <th scope="col">Data de registro</th>
+                <th scope="col">Observação</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+
+            {% for movimentacao in movimentacoes %}
+                <tr>
+                    <td scope="row">{{ movimentacao.get('data') | format_date }}</td>
+                    <td>{{ movimentacao.get('tipo', '').capitalize() }}</td>
+                    <td>{{ movimentacao.get('quantidade') }}</td>
+                    <td>{{ usuarios.get(movimentacao.get('responsavel')).nome }}</td>
+                    <td>{{ refeicoes.get(movimentacao.get('refeicao_id')).nome }}</td>
+                    {% if logs_saidas.get(movimentacao.get('id')) or logs_entradas.get(movimentacao.get('id')) %}
+                      {% if movimentacao.get('tipo') == 'saida' %}
+                          <td>{{ logs_saidas.get(movimentacao.get('id')).data_hora | format_date('%d/%m/%Y %H:%M:%S') }}</td>
+                        {% elif movimentacao.get('tipo') == 'entrada' %}
+                          <td>{{ logs_entradas.get(movimentacao.get('id')).data_hora | format_date('%d/%m/%Y %H:%M:%S') }}</td>
+                        {% endif %}
+                    {% else %}
+                      <td>-</td>
+                    {% endif %}
+                    <td>{{ movimentacao.get('observacao') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+{% else %}
+<div style="display: flex; justify-content: center;">
+  <p>Não há movimentações desse produto</p>
+</div>
+{% endif %}
+<!-- Container de paginação -->
+
+{% if movimentacoes | length > 0 %}
+<nav aria-label="Navegação de páginas">
+  <ul class="pagination justify-content-center">
+
+    <!-- Link Anterior -->
+    {% if page > 1 %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('estoque.movimentacao_por_produto', produto_id=produto.id, page=page-1) }}">
+          Anterior
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Anterior</span>
+      </li>
+    {% endif %}
+
+    <!-- Texto central mostrando a página atual -->
+    <li class="page-item disabled">
+      <span class="page-link">
+        Página {{ page }} de {{ total_pages }}
+      </span>
+    </li>
+
+    <!-- Link Próxima -->
+    {% if page < total_pages %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('estoque.movimentacao_por_produto', produto_id=produto.id, page=page+1) }}">
+          Próxima
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Próxima</span>
+      </li>
+    {% endif %}
+
+  </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

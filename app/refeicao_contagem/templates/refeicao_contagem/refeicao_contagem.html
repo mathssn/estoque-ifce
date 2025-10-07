@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<div class="container py-4">
+  <div class="page-title mb-4">
+    <h2 class="fw-bold border-bottom pb-2">
+      Registro do dia {{ data | format_date }}
+    </h2>
+  </div>
+</div>
+
+
+<div class="container py-4">
+<form action="{{ url_for('registro_refeicao.registro_refeicao') }}" method="post">    
+<div class="card mb-3 shadow" style="border: 0px; border-radius: 15px;">
+  <div class="card-body d-flex justify-content-between align-items-center">
+        <input type="date" id="data" name="data" value="{{ data.isoformat() }}" class="form-control w-auto">
+        <button class="btn btn-primary" type="submit">Pesquisar</button>
+    </div>
+</div>
+</form>
+</div>
+
+
+{% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+<div style="display: flex; justify-content: center; margin-bottom: 15px;">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroRegistroModal">
+        Cadastrar novo registro
+    </button>
+</div>
+{% endif %}
+
+<div class="container mt-5">
+<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+  <div class="card-body">
+    <div class="table-responsive">
+
+        <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Refeição</th>
+                <th scope="col">Aluno</th>
+                <th scope="col">Servidor</th>
+                <th scope="col">Terceirizado</th>
+                <th scope="col">Outros</th>
+                <th scope="col">Total</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+
+            {% for refeicao in refeicoes_cadastradas %}
+                <tr>
+                    <td>{{ refeicao.nome }}</td>
+                    {% for registro in registros %}
+                        {% if registro.refeicao_id == refeicao.id %}
+                            <td>{{ registro.qntd_aluno }}</td>
+                            <td>{{ registro.qntd_servidores }}</td>
+                            <td>{{ registro.qntd_terceirizados }}</td>
+                            <td>{{ registro.qntd_outros }}</td>
+                            <td>{{ registro.total }}</td>
+                            <td>
+                                {% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor']%}
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editRegistroModal" onclick="fillEditForm('{{registro.id}}', '{{registro.refeicao_id}}', '{{registro.data}}', '{{registro.qntd_aluno}}', '{{registro.qntd_servidores}}', '{{registro.qntd_terceirizados}}', '{{registro.qntd_outros}}')">Editar</button>
+                                {% else %}
+                                    <button class="btn btn-secondary">Editar</button>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            <tr>
+                <td>Total</td>
+                <td>{{ qntd_p_publico.get('aluno') }}</td>
+                <td>{{ qntd_p_publico.get('servidor') }}</td>
+                <td>{{ qntd_p_publico.get('terceirizado') }}</td>
+                <td>{{ qntd_p_publico.get('outros') }}</td>
+                <td>{{ total_dia }}</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</div>
+</div>
+</div>
+
+
+<div class="modal fade" id="cadastroRegistroModal" tabindex="-1" aria-labelledby="cadastroRegistroModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form action="{{ url_for('registro_refeicao.cadastro_registro_refeicao') }}" method="POST">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="cadastroRegistroModalLabel">Cadastrar registro</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            <div class="mb-3">
+                <label for="refeicao_id" class="form-label">Refeição</label>
+                <select id="refeicao_id" name="refeicao_id" class="form-select" required>
+                {% for refeicao in refeicoes %}
+                    {% if refeicao.nome != 'Outros' %}
+                        <option value="{{ refeicao.id }}">{{ refeicao.nome }}</option>
+                    {% endif %}
+                {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="data" class="form-label">Data</label>
+                <input id="data" name="data" type="date" class="form-control" value="{{ data.isoformat() }}" readonly>
+            </div>
+            
+            <div class="mb-3">
+                <label for="qntd_alunos" class="form-label">Aluno</label>
+                <input id="qntd_alunos" name="qntd_alunos" type="number" class="form-control" value="0" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="qntd_servidores" class="form-label">Servidores</label>
+                <input id="qntd_servidores" name="qntd_servidores" type="number" class="form-control" value="0" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="qntd_terceirizados" class="form-label">Terceirizados</label>
+                <input id="qntd_terceirizados" name="qntd_terceirizados" type="number" class="form-control" value="0" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="qntd_outros" class="form-label">Outros</label>
+                <input id="qntd_outros" name="qntd_outros" type="number" class="form-control" value="0" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Cadastrar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="editRegistroModal" tabindex="-1" aria-labelledby="editRegistroModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form id="editRegistroForm" method="POST">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="editRegistroModalLabel">Cadastrar registro</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            <div class="mb-3">
+                <label for="edit_refeicao_id" class="form-label">Refeição</label>
+                <select id="edit_refeicao_id" name="edit_refeicao_id" class="form-select" disabled>
+                {% for refeicao in refeicoes %}
+                    {% if refeicao.nome != 'Outros' %}
+                        <option value="{{ refeicao.id }}">{{ refeicao.nome }}</option>
+                    {% endif %}
+                {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_data" class="form-label">Data</label>
+                <input id="edit_data" name="edit_data" type="date" class="form-control" value="{{ data.isoformat() }}" disabled>
+            </div>
+            
+            <div class="mb-3">
+                <label for="edit_qntd_alunos" class="form-label">Aluno</label>
+                <input id="edit_qntd_alunos" name="edit_qntd_alunos" type="number" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="edit_qntd_servidores" class="form-label">Servidores</label>
+                <input id="edit_qntd_servidores" name="edit_qntd_servidores" type="number" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="edit_qntd_terceirizados" class="form-label">Terceirizados</label>
+                <input id="edit_qntd_terceirizados" name="edit_qntd_terceirizados" type="number" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_qntd_outros" class="form-label">Outros</label>
+                <input id="edit_qntd_outros" name="edit_qntd_outros" type="number" class="form-control" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+    function fillEditForm(id, refeicao_id, data, qntd_aluno, qntd_servidores, qntd_terceirizados, qntd_outros) {
+        document.getElementById("edit_refeicao_id").value = refeicao_id;
+        document.getElementById("edit_data").value = data;
+        document.getElementById("edit_qntd_alunos").value = qntd_aluno;
+        document.getElementById("edit_qntd_servidores").value = qntd_servidores;
+        document.getElementById("edit_qntd_terceirizados").value = qntd_terceirizados;
+        document.getElementById("edit_qntd_outros").value = qntd_outros;
+
+        document.getElementById("editRegistroForm").action = "{{ url_for('registro_refeicao.editar_registro_refeicao', registro_id=0) }}".replace('0', id);
+    }
+</script>
+
+{% endblock %}

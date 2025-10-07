@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<div>
+  <a href="{{ url_for('main.atas_menu') }}" class="btn btn-secondary m-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+</div>
+
+<div class="container py-4">
+  <div class="page-title mb-4">
+    <h2 class="fw-bold border-bottom pb-2">
+      Notas Fiscais
+    </h2>
+  </div>
+</div>
+
+
+<div class="container py-4">
+<div class="card mb-3 shadow" style="border: 0px; border-radius: 15px;">
+    <div class="card-body">
+    <form id="formAta" action="{{ url_for('notas_fiscais.form_notas_lista') }}" class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 h-100" method="post">
+      <div class="mb-3 flex-grow-1">
+            <label for="numero_search" class="form-label">Número</label>
+            {% if numero %}
+            <input type="number" id="numero_search" name="numero_search" class="form-control" value="{{ numero }}">
+            {% else %}
+            <input type="number" id="numero_search" name="numero_search" class="form-control">
+            {% endif %}
+        </div>
+        <div class="mb-3 flex-grow-1">
+            <label for="fornecedor_select" class="form-label">Fornecedor</label>
+            <select name="fornecedor_select" id="fornecedor_select" class="form-control h-100">
+                {% for fornecedor_id, fornecedor_ in fornecedores.items() %}
+                    {% if fornecedor_id == fornecedor.id %}
+                        <option value="{{ fornecedor.id }}" selected>{{ fornecedor.nome }}</option>
+                    {% else %}
+                        <option value="{{ fornecedor_id }}">{{ fornecedor_.nome }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3 flex-grow-1">
+            <label for="empenho_select" class="form-label">Empenho</label>
+            <select name="empenho_select" id="empenho_select" class="form-control h-100">
+                {% for empenho_id, empenho_ in empenhos.items() %}
+                    {% if empenho_id == empenho.id %}
+                    {% if empenho.numero != 0 %}
+                        <option value="{{ empenho.id }}" selected>{{ empenho.numero | format_empenho(empenho.ano) }}</option>
+                    {% else %}
+                        <option value="{{ empenho.id }}" selected>-</option>
+                    {% endif %}
+                    {% else %}
+                    {% if empenho_.numero != 0 %}
+                        <option value="{{ empenho_.id }}">{{ empenho_.numero | format_empenho(empenho_.ano) }}</option>
+                    {% else %}
+                        <option value="{{ empenho_.id }}">-</option>
+                    {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+          <button class="btn btn-primary h-100" type="submit">Pesquisar</button>
+        </div>
+
+    </form>
+</div>
+</div>
+</div>
+
+
+
+<div class="container mt-5">
+<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+  <div class="card-body">
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Número</th>
+          <th scope="col">Data de Emissão</th>
+          <th scope="col">Fornecedor</th>
+          <th scope="col">Série</th>
+          <th scope="col">Empenho</th>
+          <th scope="col">Status</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for nf in notas %}
+        {% if nf.numero != '-' %}
+        <tr>
+          <td><a href="{{ url_for('notas_fiscais.nota_info', nota_id=nf.id) }}" style="text-decoration: none;">{{ nf.numero }}</a></td>
+          <td>{{ nf.data_emissao | format_date }}</td>
+          <td>{{ fornecedores.get(nf.fornecedor_id).nome }}</td>
+          <td>{{ nf.serie }}</td>
+          <td>{{ empenhos.get(nf.empenho_id).numero | format_empenho(empenhos.get(nf.empenho_id).ano) }}</td>
+          <td>{{ nf.status.value | capitalize }}</td>
+          <td style="display: flex; gap: 10px;">
+            {% if empenhos.get(nf.empenho_id).status.value == 'ativo' and atas.get(empenhos.get(nf.empenho_id).ata_id).status.value == 'ativo' and session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editNotaModal"
+              onclick="fillEditForm('{{ nf.id }}', '{{ nf.numero }}', '{{ nf.data_emissao }}', '{{ nf.empenho_id }}', '{{ nf.fornecedor_id }}', '{{ nf.serie }}', '{{ nf.status.value }}')">
+              Editar
+            </button>
+            {% else %}
+            <button type="button" class="btn btn-secondary">Editar</button>
+            {% endif %}
+          </td>
+
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+</div>
+
+
+{% if notas | length > 0 %}
+<nav aria-label="Navegação de páginas">
+  <ul class="pagination justify-content-center">
+
+    {% if page > 1 %}
+      <li class="page-item">
+        <form action="{{ url_for('notas_fiscais.form_notas_lista') }}" method="post">
+          <input type="hidden" name="page" value="{{ page - 1 }}">
+          <input type="hidden" name="empenho_select" id="empenho_select" value="{{ empenho.id }}">
+          <input type="hidden" name="fornecedor_select" id="fornecedor_select" value="{{ fornecedor.id }}">
+          <input type="hidden" name="numero_search" id="numero_search" value="{{ numero }}">
+          <button class="page-link" type="submit">Anterior</button>
+        </form>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Anterior</span>
+      </li>
+    {% endif %}
+
+    <li class="page-item disabled">
+      <span class="page-link">
+        Página {{ page }} de {{ total_pages }}
+      </span>
+    </li>
+
+    {% if page < total_pages %}
+      <li class="page-item">
+        <form action="{{ url_for('notas_fiscais.form_notas_lista') }}" method="post">
+          <input type="hidden" name="page" value="{{ page + 1 }}">
+          <input type="hidden" name="empenho_select" id="empenho_select" value="{{ empenho.id }}">
+          <input type="hidden" name="fornecedor_select" id="fornecedor_select" value="{{ fornecedor.id }}">
+          <input type="hidden" name="numero_search" id="numero_search" value="{{ numero }}">
+          <button class="page-link" type="submit">Próxima</button>
+        </form>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Próxima</span>
+      </li>
+    {% endif %}
+
+  </ul>
+</nav>
+{% endif %}
+
+
+<!-- Modal de Edição -->
+<div class="modal fade" id="editNotaModal" tabindex="-1" aria-labelledby="editNotaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="editNotaForm" method="POST">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editNotaModalLabel">Editar Nota Fiscal</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="edit_numero" class="form-label">Número</label>
+            <input id="edit_numero" name="edit_numero" type="text" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_data_emissao" class="form-label">Data de Emissão</label>
+            <input id="edit_data_emissao" name="edit_data_emissao" type="date" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_serie" class="form-label">Série</label>
+            <input id="edit_serie" name="edit_serie" type="number" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_fornecedor_id" class="form-label">Fornecedor</label>
+            <select id="edit_fornecedor_id" name="edit_fornecedor_id" class="form-select" disabled>
+              {% for f_id, f in fornecedores.items() %}
+              <option value="{{ f_id }}">{{ f.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_empenho_id" class="form-label">Empenho</label>
+            <select id="edit_empenho_id" name="edit_empenho_id" class="form-select" disabled>
+              {% for e_id, e in empenhos.items() %}
+              <option value="{{ e_id }}">{{ e.ano }}NE{{ e.numero }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_status" class="form-label">Status</label>
+            <select id="edit_status" name="edit_status" class="form-select">
+              {% for st in ['ativo', 'inativo'] %}
+              <option value="{{ st }}">{{ st | capitalize }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function fillEditForm(id, numero, data_emissao, empenho_id, fornecedor_id, serie, status) {
+    document.getElementById("edit_numero").value = numero;
+    document.getElementById("edit_data_emissao").value = data_emissao;
+    document.getElementById("edit_empenho_id").value = empenho_id;
+    document.getElementById("edit_fornecedor_id").value = fornecedor_id;
+    document.getElementById("edit_serie").value = serie;
+    document.getElementById("edit_status").value = status;
+
+    const formAction = "{{ url_for('notas_fiscais.editar_nota', nota_id=0) }}".replace('0', id);
+    document.getElementById("editNotaForm").action = formAction;
+  }
+
+  const modalEditNF = document.getElementById('editNotaModal');
+  modalEditNF.addEventListener('shown.bs.modal', function () {
+    const input = document.getElementById('edit_numero');
+    input.focus();
+  });
+</script>
+
+{% endblock %}

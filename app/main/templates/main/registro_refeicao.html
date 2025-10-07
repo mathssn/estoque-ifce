@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-4">
+  <div class="d-grid gap-3">
+    <a href="{{ url_for('registro_refeicao.registro_refeicao') }}"class="btn btn-outline-success btn-lg">Registro diário</a>
+    <a href="{{ url_for('registro_refeicao.registro_refeicao_periodo') }}" class="btn btn-outline-success btn-lg">Registro por período</a>
+  </div>
+</div>
+
+
+{% endblock %}

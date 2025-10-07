@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-4">
+  <div class="alert alert-info text-center">
+    {% if dia %}
+        <form action="{{ url_for('estoque.movimentacoes_diarias') }}" method="post">
+          <input type="hidden" name="date" value="{{ dia.data }}">
+          Dia aberto: <button type="submit" style="text-decoration: none; padding-left: 0px;" class="btn btn-link"><strong>{{ dia.data | format_date }}</strong></button>
+        </form>
+    {% else %}
+        Nenhum dia aberto
+    {% endif %}
+  </div>
+  
+  <div class="d-grid gap-3">
+    <a href="{{ url_for('produtos.produtos_lista') }}" class="btn btn-outline-success btn-lg">Produtos</a>
+    <a href="{{ url_for('estoque.movimentacoes_diarias') }}" class="btn btn-outline-success btn-lg">Movimentações Diárias</a>
+    <a href="{{ url_for('relatorios.relatorios_lista') }}" class="btn btn-outline-success btn-lg">Relatórios</a>
+    <a href="{{ url_for('marcas.marcas_lista') }}" class="btn btn-outline-success btn-lg">Marcas</a>
+  </div>
+</div>
+<div class="container mt-4">
+  {% if produtos_zerados | length > 0 %}
+  <div class="alert alert-danger" role="alert">
+    <h4 class="alert-heading d-flex justify-content-between align-items-center">
+      ⚠️ Itens sem estoque!
+      <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseZerados">
+        Mostrar / Ocultar
+      </button>
+    </h4>
+    <p>Os seguintes produtos estão zerados e precisam ser repostos:</p>
+    <div class="collapse" id="collapseZerados">
+      <ul>
+        {% for produto in produtos_zerados %}
+          <li>{{ produto.nome }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if baixo_estoque | length > 0 %}
+  <div class="alert alert-warning" role="alert">
+    <h4 class="alert-heading d-flex justify-content-between align-items-center">
+      🔔 Estoque baixo
+      <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBaixo">
+        Mostrar / Ocultar
+      </button>
+    </h4>
+    <p>Estes produtos estão quase acabando:</p>
+    <div class="collapse" id="collapseBaixo">
+      <ul>
+        {% for produto in baixo_estoque %}
+          <li>{{ produto.nome }} ({{ produto.quantidade }} {{ produto.unidade }})</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<div>
+  <a href="{{ url_for('main.estoque_menu') }}" class="btn btn-secondary m-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+</div>
+
+
+<div class="container py-4">
+  <div class="page-title mb-4">
+    <h2 class="fw-bold border-bottom pb-2">
+      Movimentações diárias
+    </h2>
+  </div>
+</div>
+
+
+<div class="container py-4">
+
+<div class="card mb-3 shadow" style="border: 0px; border-radius: 15px;">
+    <div class="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+      <form id="formData" action="{{ url_for('estoque.movimentacoes_diarias') }}" class="d-flex align-items-center gap-2" method="post">
+        <input type="date" id="date" name="date" value="{{ data }}" class="form-control">
+      </form>
+
+{% if dia %}
+    {% if dia.fechado %}
+        <div class="alert alert-warning">
+          Status do dia: <strong>Fechado</strong>
+        </div>  
+      {% else %}
+        <div class="alert alert-success">
+          Status do dia: <strong>Aberto</strong>
+        </div>  
+      {% endif %}
+{% else %}
+    <div class="alert alert-secondary">
+      Status do dia: <strong>Indisponivel</strong>
+    </div>  
+{% endif %}
+</div>
+</div>
+</div>
+
+
+<ul class="nav nav-tabs justify-content-center" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    {% if tipo_movimentacao == 'saida' %}
+      <button class="nav-link active" id="saidas-tab" data-bs-toggle="tab" data-bs-target="#saidas-tab-pane" type="button" role="tab" aria-controls="saidas-tab-pane" aria-selected="true">Saidas</button>
+    {% else %}
+      <button class="nav-link" id="saidas-tab" data-bs-toggle="tab" data-bs-target="#saidas-tab-pane" type="button" role="tab" aria-controls="saidas-tab-pane" aria-selected="false">Saidas</button>
+    {% endif %}     
+  </li>
+  <li class="nav-item" role="presentation">
+    {% if tipo_movimentacao == 'entrada' %}
+      <button class="nav-link active" id="entradas-tab" data-bs-toggle="tab" data-bs-target="#entradas-tab-pane" type="button" role="tab" aria-controls="entradas-tab-pane" aria-selected="true">Entradas</button>
+    {% else %}
+      <button class="nav-link" id="entradas-tab" data-bs-toggle="tab" data-bs-target="#entradas-tab-pane" type="button" role="tab" aria-controls="entradas-tab-pane" aria-selected="false">Entradas</button>
+    {% endif %}
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="saldo-tab" data-bs-toggle="tab" data-bs-target="#saldo-tab-pane" type="button" role="tab" aria-controls="saldo-tab-pane" aria-selected="false">Saldo diário</button>
+  </li>
+</ul>
+
+
+<div class="tab-content" id="myTabContent">
+
+{% if tipo_movimentacao == 'saida' %}
+  <div class="tab-pane fade show active" id="saidas-tab-pane" role="tabpanel" aria-labelledby="saidas-tab" tabindex="0">
+{% else %}
+  <div class="tab-pane fade" id="saidas-tab-pane" role="tabpanel" aria-labelledby="saidas-tab" tabindex="0">
+{% endif %}
+
+{% include 'estoque/partials/saidas_table.html' %}
+
+</div>
+
+{% if tipo_movimentacao == 'entrada' %}
+  <div class="tab-pane fade show active" id="entradas-tab-pane" role="tabpanel" aria-labelledby="entradas-tab" tabindex="0">
+{% else %}
+  <div class="tab-pane fade" id="entradas-tab-pane" role="tabpanel" aria-labelledby="entradas-tab" tabindex="0">
+{% endif %}
+
+{% include 'estoque/partials/entradas_table.html' %}
+
+</div>
+<div class="tab-pane fade" id="saldo-tab-pane" role="tabpanel" aria-labelledby="saldo-tab" tabindex="0">
+
+{% include 'estoque/partials/saldo_diario.html' %}
+
+</div>
+</div>
+</div>
+
+
+{% include 'estoque/partials/saida_cadastro_modal.html' %}
+
+{% include 'estoque/partials/entrada_cadastro_modal.html' %}
+
+{% include 'estoque/partials/saida_edit_modal.html' %}
+
+{% include 'estoque/partials/entrada_edit_modal.html' %}
+
+{% include 'estoque/partials/scripts.html' %}
+
+{% endblock %}

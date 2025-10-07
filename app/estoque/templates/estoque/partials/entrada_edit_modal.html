@@ -1,0 +1,76 @@
+
+<div class="modal fade" id="editEntradaModal" tabindex="-1" aria-labelledby="editEntradaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form id="editEntradaForm" method="POST">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="editEntradaModalLabel">Editar entrada</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            <div class="mb-3">
+                <label for="edit_produto_id_entrada" class="form-label">Produto</label>
+                <select id="edit_produto_id_entrada" name="edit_produto_id_entrada" class="form-select" disabled>
+                    {% for produto_id, produto in produtos.items() %}
+                    {% if produto.status == 'ativo' or session.get('nivel_acesso') in ['Superusuario'] %}
+                        <option value="{{ produto_id }}">{{ produto.nome }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="edit_data_entrada" class="form-label">Data</label>
+                <input id="edit_data_entrada" name="edit_data_entrada" type="date" class="form-control" value="{{ data }}" disabled>
+            </div>
+            
+            <div class="mb-3">
+                <label for="edit_quantidade_entrada" class="form-label">Quantidade</label>
+                <input id="edit_quantidade_entrada" name="edit_quantidade_entrada" type="number" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_marca_id_entrada" class="form-label">Marca</label>
+                <select id="edit_marca_id_entrada" name="edit_marca_id_entrada" class="form-select">
+                  {% for marca_id, marca in marcas.items() %}
+                    <option value="{{ marca_id }}">{{ marca.nome }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_data_validade_entrada" class="form-label">Data de Validade</label>
+                <input id="edit_data_validade_entrada" name="edit_data_validade_entrada" type="date" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_fornecedor_id_entrada" class="form-label">Fornecedor</label>
+                <select id="edit_fornecedor_id_entrada" name="edit_fornecedor_id_entrada" class="form-select">
+                  {% for fornecedor_id, fornecedor in fornecedores.items() %}
+                    <option value="{{ fornecedor_id }}">{{ fornecedor.nome }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_nota_fiscal_id_entrada" class="form-label">Nota fiscal</label>
+                <select id="edit_nota_fiscal_id_entrada" name="edit_nota_fiscal_id_entrada" class="form-select">
+                  {% for nota_fiscal_id, nota_fiscal in notas_fiscais.items() %}
+                    <option value="{{ nota_fiscal_id }}">{{ nota_fiscal.numero }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="edit_observacao_entrada" class="form-label">Observação</label>
+                <input id="edit_observacao_entrada" name="edit_observacao_entrada" type="text" class="form-control">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>

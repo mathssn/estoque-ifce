@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<div>
+  <a href="{{ url_for('relatorios.relatorios_lista') }}" class="btn btn-secondary m-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+</div>
+
+
+<div class="container py-4">
+  <div class="page-title mb-4">
+    <h2 class="fw-bold border-bottom pb-2">
+      Relatório de {{ data_inicio | format_date }} a {{ data_fim | format_date }}
+    </h2>
+  </div>
+</div>
+
+
+<div class="container py-4">
+<div class="card mb-3 shadow" style="border: 0px; height: 80px;">
+    <div class="card-body">
+        <form id="formData" action="{{ url_for('relatorios.relatorios_periodo') }}" 
+              class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 h-100", method="post">
+
+            <input type="date" id="data_inicio" name="data_inicio" 
+                   value="{{ data_inicio }}" class="form-control h-100">
+
+            <input type="date" id="data_fim" name="data_fim" 
+                   value="{{ data_fim }}" class="form-control h-100">
+
+            <button class="btn btn-primary h-100" type="submit">Pesquisar</button>
+        </form>
+    </div>
+</div>
+
+</div>
+<div class="container mt-5">
+<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+    <div class="card-body">
+    <div class="table-responsive">
+
+        <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Produto</th>
+                <th scope="col">Unid.</th>
+                <th scope="col">Café da manhã</th>
+                <th scope="col">Lanche da manhã</th>
+                <th scope="col">Almoço</th>
+                <th scope="col">Lanche da tarde</th>
+                <th scope="col">Jantar</th>
+                <th scope="col">Ceia</th>
+                <th scope="col">Outros</th>
+                <th scope="col">Entrada</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+
+            {% for produto in produtos %}
+                <tr>
+                    <td scope="row">{{ produto.nome }}</td>
+                    <td>{{ produto.unidade }}</td>
+                    {% for refeicao in refeicoes %}
+                    <td>{{ saidas_mensais[produto.id][refeicao.id] if saidas_mensais[produto.id][refeicao.id] > 0 else '' }}</td>
+                    {% endfor %}
+                    <td>{{ entradas_mensais[produto.id] if entradas_mensais[produto.id] > 0 else '' }}</td>
+            </tr>
+            {% else %}
+                <p>Ainda não há produtos cadastrados</p>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+</div>
+</div>
+
+{% endblock %}

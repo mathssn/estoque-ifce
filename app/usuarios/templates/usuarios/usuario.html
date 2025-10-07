@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="page-title mb-4">
+    <h2 class="fw-bold border-bottom pb-2">
+      Meu Perfil
+    </h2>
+  </div>
+
+  <div class="card shadow">
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Nome:</label>
+          <input class="form-control" disabled value="{{ usuario.nome }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">E-mail:</label>
+          <input class="form-control" disabled value="{{ usuario.email }}">
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Data de Nascimento:</label>
+          <input class="form-control" disabled value="{{ usuario.data_nascimento | format_date }}">
+        </div>
+      </div>
+
+      <!-- Campo de senha com botão de visibilidade -->
+      <div class="row">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Senha:</label>
+          <div class="input-group"  style="width: 300px;">
+            <input type="password" id="senha" class="form-control" value="********" disabled>
+            <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalAlterarSenha">
+              <i class="bi bi-pencil-square"></i> Alterar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de alteração de senha -->
+<div class="modal fade" id="modalAlterarSenha" tabindex="-1" aria-labelledby="modalAlterarSenhaLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="post" action="{{ url_for('usuarios.alterar_senha', user_id=usuario.id) }}" method="POST">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAlterarSenhaLabel">Alterar Senha</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="senhaAtual" class="form-label">Senha Atual</label>
+            <input type="password" class="form-control" id="senhaAtual" name="senha_atual" required>
+          </div>
+          <div class="mb-3">
+            <label for="novaSenha" class="form-label">Nova Senha</label>
+            <input type="password" class="form-control" id="novaSenha" name="nova_senha" required>
+          </div>
+          <div class="mb-3">
+            <label for="confirmarSenha" class="form-label">Confirmar Nova Senha</label>
+            <input type="password" class="form-control" id="confirmarSenha" name="confirmar_senha" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+{% endblock %}

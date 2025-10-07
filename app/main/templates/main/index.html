@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-4">
+  <div class="d-grid gap-3">
+    <a href="{{ url_for('main.estoque_menu') }}" class="btn btn-outline-success btn-lg">Estoque</a>
+    <a href="{{ url_for('main.atas_menu') }}" class="btn btn-outline-success btn-lg">Atas</a>
+    <a href="{{ url_for('main.registro_refeicao_menu') }}"class="btn btn-outline-success btn-lg">Registro de refeições</a>
+    {% if session.get('nivel_acesso') in ['Superusuario'] %}
+      <a href="{{ url_for('usuarios.usuarios_lista') }}" class="btn btn-outline-success btn-lg">Usuários</a>
+    {% endif %}
+  </div>
+</div>
+
+
+{% endblock %}
