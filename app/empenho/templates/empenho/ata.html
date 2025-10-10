@@ -59,7 +59,7 @@
 <div class="tab-content" id="myTabContent">
   <div class="tab-pane fade show active" id="itens-tab-pane" role="tabpanel" aria-labelledby="itens-tab" tabindex="0">
 
-{% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+{% if ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
 <div style="display: flex; justify-content: center; margin-top: 25px;">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroItemAtaModal">
         Cadastrar novo item
@@ -94,14 +94,14 @@
                     <td>{{ item.valor_unitario | format_money }}</td>
                     <td>{{ item.total | format_money }}</td>
                     <td style="display: flex; gap: 10px;">
-                      {% if ata.status.value == 'ativo' and session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+                      {% if ata.status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editItemAtaModal" onclick="fillEditItemForm('{{item.id}}', '{{item.produto_id}}', '{{item.quantidade_maxima}}', '{{item.valor_unitario | format_money(False) }}')">Editar</button>
                         <form action="{{ url_for('atas.excluir_item_ata', item_id=item.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este item?')">
                           <button type="submit" class="btn btn-danger">Excluir</button>
                         </form>
                       {% else %}
-                        <button type="button" class="btn btn-secondary">Editar</button>
-                        <button type="button" class="btn btn-secondary">Excluir</button>
+                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
+                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para excluir este item.')">Excluir</button>
                       {% endif %}
                     </td>
                 </tr>
@@ -117,7 +117,7 @@
 <div class="tab-pane fade" id="empenhos-tab-pane" role="tabpanel" aria-labelledby="empenhos-tab" tabindex="0">
 
 
-{% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+{% if ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
 <div style="display: flex; justify-content: center; margin-top: 25px;">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroEmpenhoModal">
         Cadastrar novo empenho
@@ -149,10 +149,10 @@
                     <td>{{ empenho.ano }}</td>
                     <td>{{ empenho.status.value | capitalize }}</td>
                     <td>
-                      {% if ata.status.value == 'ativo' and session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+                      {% if ata.status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEmpenhoModal" onclick="fillEditEmpenhoForm('{{empenho.id}}', '{{empenho.numero}}', '{{empenho.ano}}', '{{empenho.status.value}}')">Editar</button>
                       {% else %}
-                        <button type="button" class="btn btn-secondary">Editar</button>
+                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
                       {% endif %}
                       </td>
                 </tr>
@@ -240,7 +240,9 @@
             <label for="produto_id" class="form-label">Produto</label>
             <select id="produto_id" name="produto_id" class="form-select" required>
               {% for produto_id, produto in produtos.items() %}
+              {% if produto.status.value == 'ativo' %}
                 <option value="{{ produto_id }}">{{ produto.nome }}</option>
+              {% endif %}
               {% endfor %}
             </select>
           </div>

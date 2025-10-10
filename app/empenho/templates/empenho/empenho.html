@@ -69,10 +69,10 @@
                     <td>{{ item.valor_unitario | format_money }}</td>
                     <td>{{ item.total | format_money }}</td>
                     <td style="display: flex; gap: 10px;">
-                      {% if ata.status.value == 'ativo' and empenho.status.value == 'ativo' and session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+                      {% if ata.status.value == 'ativo' and empenho.status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersections(session.get('roles', [])) %}
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editItemEmpenhoModal" onclick="fillEditItemForm('{{item.id}}', '{{item.produto_id}}', '{{item.quantidade_empenhada}}', '{{item.valor_unitario | format_money(False) }}')">Editar</button>
                       {% else %}
-                        <button type="button" class="btn btn-secondary">Editar</button>
+                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
                       {% endif %}
                     </td>
                 </tr>
@@ -85,7 +85,7 @@
 </div>
 </div>
 
-{% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] and ata.status.value == 'ativo' and empenho.status.value == 'ativo' %}
+{% if ['admin', 'nutricionista', 'financeiro'] | check_intersections(session.get('roles', [])) and ata.status.value == 'ativo' and empenho.status.value == 'ativo' %}
 <div style="display: flex; justify-content: center; margin-top: 25px;">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroNFModal">
         Cadastrar nova nota fiscal
@@ -166,7 +166,9 @@
             <label for="edit_produto_id" class="form-label">Produto</label>
             <select id="edit_produto_id" name="edit_produto_id" class="form-select" disabled>
               {% for produto_id, produto in produtos.items() %}
+              {% if produto.status.value == 'ativo' %}
                 <option value="{{ produto_id }}">{{ produto.nome }}</option>
+              {% endif %}
               {% endfor %}
             </select>
           </div>

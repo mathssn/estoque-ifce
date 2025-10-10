@@ -12,7 +12,7 @@
                 <label for="produto_id" class="form-label">Produto</label>
                 <select id="produto_id" name="produto_id" class="form-select">
                     {% for produto_id, produto in produtos.items() %}
-                    {% if (produto.status == 'ativo' or session.get('nivel_acesso') in ['Superusuario']) and produto.tipo.value == 'nao_perecivel' %}
+                    {% if produto.status == 'ativo' and produto.tipo.value == 'nao_perecivel' %}
                         <option value="{{ produto_id }}">{{ produto.nome }}</option>
                     {% endif %}
                     {% endfor %}
@@ -48,7 +48,7 @@
                 <select id="fornecedor_id" name="fornecedor_id" class="form-select">
                   <option value="0">Selecione um fornecedor</option>
                   {% for fornecedor_id, fornecedor in fornecedores.items() %}
-                  {% if fornecedor.nome != "-" %}
+                  {% if fornecedor.nome != "-" and fornecedor.status.value == 'ativo' %}
                   <option value="{{ fornecedor_id }}">{{ fornecedor.nome }}</option>
                   {% endif %}
                   {% endfor %}

@@ -1,5 +1,5 @@
 
-{% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+{% if ['admin', 'nutricionista'] | check_intersection(session.get('roles', [])) %}
 {% if dia and not dia.fechado %}
 <div style="display: flex; justify-content: center; margin-top: 15px;">
   <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEntradaModal" style="margin: 10px;">
@@ -46,7 +46,7 @@
               <td class="col-detalhe-entrada">{{ usuarios.get(entrada.usuario_id) }}</td>
               <td>
                 {% if dia != None %}
-                  {% if dia.fechado == False and session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+                  {% if dia.fechado == False and ['admin', 'nutricionista'] | check_intersection(session.get('roles', [])) %}
                   <div style="display: flex; gap: 10px;">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEntradaModal" onclick="fillEntradaEditForm('{{entrada.id}}', '{{entrada.produto_id}}', '{{entrada.data_entrada}}', '{{entrada.quantidade}}', '{{entrada.marca_id}}', '{{entrada.data_validade}}', '{{entrada.fornecedor_id}}', '{{entrada.nota_fiscal_id}}', '{{entrada.observacao}}')">Editar</button>
                     <form action="{{ url_for('entradas.excluir_entrada', entrada_id=entrada.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta entrada?')">
@@ -54,12 +54,12 @@
                     </form>
                   </div>
                   {% else %}
-                    <button class="btn btn-secondary">Editar</button>
-                    <button class="btn btn-secondary">Excluir</button>
+                    <button class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
+                    <button class="btn btn-secondary" onclick="alert('Você não tem permissão para excluir este item.')">Excluir</button>
                   {% endif %}
                   {% else %}
-                    <button class="btn btn-secondary">Editar</button>
-                    <button class="btn btn-secondary">Excluir</button>
+                    <button class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
+                    <button class="btn btn-secondary" onclick="alert('Você não tem permissão para excluir este item.')">Excluir</button>
                   {% endif %}
               </td>
           {% endfor %}

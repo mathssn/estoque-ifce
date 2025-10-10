@@ -1,7 +1,7 @@
 from flask import Blueprint, request, session, render_template, redirect, flash, url_for
 from sqlalchemy.exc import IntegrityError
 
-from app.utils import login_required
+from app.utils import login_required, role_required
 from app.estoque.models import *
 from app.models import *
 from app.database.db import get_session
@@ -32,11 +32,8 @@ def marcas_lista():
 
 @marcas_bp.route('/cadastro/marca/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def cadastro_marca():
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('marcas.marcas_lista'))
-
     try:
         nome = request.form.get('nome', '').strip()
         produto_id = int(request.form.get('produto_id'))
@@ -67,11 +64,8 @@ def cadastro_marca():
 
 @marcas_bp.route('/editar/marca/<int:marca_id>/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def editar_marca(marca_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('marcas.marcas_lista'))
-
     try:
         with get_session() as session_db:
             marca = session_db.query(Marca).filter_by(id=marca_id).first()

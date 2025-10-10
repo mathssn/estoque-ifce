@@ -1,5 +1,5 @@
 
-{% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+{% if ['admin', 'nutricionista'] | check_intersection(session.get('roles', [])) %}
 {% if dia and not dia.fechado %}
 <div style="display: flex; justify-content: center; margin-bottom: 15px; margin-top: 25px;">
   <a type="button" class="btn btn-primary" href="{{ url_for('estoque.fechar_dia', data=data) }}" onclick="return confirm('Tem certeza que deseja fechar o dia?')">Fechar dia</a>
@@ -26,7 +26,7 @@
         <tbody>
 
             {% for saldo in saldos_diarios %}
-            {% if produtos.get(saldo.produto_id).status == 'ativo' or session.get('nivel_acesso') in ['Superusuario'] %}
+            {% if produtos.get(saldo.produto_id).status == 'ativo' or 'admin' in session.get('roles', []) %}
                 <tr>
                     <td scope="row">{{ produtos.get(saldo.produto_id).codigo }}</td>
                     <td>{{ produtos.get(saldo.produto_id).nome }}</td>

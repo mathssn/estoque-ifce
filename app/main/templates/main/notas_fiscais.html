@@ -102,13 +102,13 @@
           <td>{{ empenhos.get(nf.empenho_id).numero | format_empenho(empenhos.get(nf.empenho_id).ano) }}</td>
           <td>{{ nf.status.value | capitalize }}</td>
           <td style="display: flex; gap: 10px;">
-            {% if empenhos.get(nf.empenho_id).status.value == 'ativo' and atas.get(empenhos.get(nf.empenho_id).ata_id).status.value == 'ativo' and session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+            {% if empenhos.get(nf.empenho_id).status.value == 'ativo' and atas.get(empenhos.get(nf.empenho_id).ata_id).status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles', [])) %}
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editNotaModal"
               onclick="fillEditForm('{{ nf.id }}', '{{ nf.numero }}', '{{ nf.data_emissao }}', '{{ nf.empenho_id }}', '{{ nf.fornecedor_id }}', '{{ nf.serie }}', '{{ nf.status.value }}')">
               Editar
             </button>
             {% else %}
-            <button type="button" class="btn btn-secondary">Editar</button>
+            <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
             {% endif %}
           </td>
 

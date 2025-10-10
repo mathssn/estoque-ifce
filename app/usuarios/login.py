@@ -1,4 +1,6 @@
 from flask import session, render_template, request, redirect, flash, url_for
+
+from app.models import RoleUser, Role
 from app.utils import login_required
 from app.database.db import get_session
 from app.database.utils import check_login
@@ -27,7 +29,16 @@ def login():
         elif cod == 0:
             session['user_id'] = user.id
             session['nome'] = user.nome
-            session['nivel_acesso'] = user.nivel_acesso
+
+            roles = []
+            roles_user = session_db.query(RoleUser).filter_by(usuario_id=user.id).all()
+            for role_user in roles_user:
+                if role_user.ativado:
+                    role = session_db.query(Role).filter_by(id=role_user.role_id).first()
+                    if role:
+                        roles.append(role.nome)
+
+            session['roles'] = roles.copy()
             flash('Usuário logado com sucesso!', 'success')
 
     return redirect(url_for('main.index'))

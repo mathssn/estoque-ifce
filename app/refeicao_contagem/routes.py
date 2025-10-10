@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, url_for, request, session
 from datetime import date, datetime
 from sqlalchemy.exc import IntegrityError
 
-from app.utils import login_required
+from app.utils import login_required, role_required
 from app.database.db import get_session
 from app.refeicao_contagem.models import RegistroRefeicao
 from app.models import Refeicao
@@ -51,11 +51,8 @@ def registro_refeicao():
 
 @registro_refeicao_bp.route('/cadastro/registro-refeicao/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista', 'assistencia')
 def cadastro_registro_refeicao():
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin', 'Editor']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('/'))
-
     try:
         refeicao_id = int(request.form.get('refeicao_id', 0))
         qntd_aluno = int(request.form.get('qntd_alunos', 0))
@@ -92,11 +89,8 @@ def cadastro_registro_refeicao():
 
 @registro_refeicao_bp.route('/editar/registro-refeicao/<int:registro_id>', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista', 'assistencia')
 def editar_registro_refeicao(registro_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin', 'Editor']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('refeicoes.refeicoes_lista'))
-    
     try:
         with get_session() as session_db:
             registro = session_db.query(RegistroRefeicao).filter_by(id=registro_id).first()

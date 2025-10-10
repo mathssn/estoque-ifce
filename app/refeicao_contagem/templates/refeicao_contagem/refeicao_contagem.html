@@ -24,7 +24,7 @@
 </div>
 
 
-{% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+{% if ['admin', 'nutricionista', 'assistencia'] | check_intersection(session.get('roles', [])) %}
 <div style="display: flex; justify-content: center; margin-bottom: 15px;">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroRegistroModal">
         Cadastrar novo registro
@@ -63,10 +63,10 @@
                             <td>{{ registro.qntd_outros }}</td>
                             <td>{{ registro.total }}</td>
                             <td>
-                                {% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor']%}
+                                {% if ['admin', 'nutricionista', 'assistencia'] | check_intersection(session.get('roles', [])) %}
                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editRegistroModal" onclick="fillEditForm('{{registro.id}}', '{{registro.refeicao_id}}', '{{registro.data}}', '{{registro.qntd_aluno}}', '{{registro.qntd_servidores}}', '{{registro.qntd_terceirizados}}', '{{registro.qntd_outros}}')">Editar</button>
                                 {% else %}
-                                    <button class="btn btn-secondary">Editar</button>
+                                    <button class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
                                 {% endif %}
                             </td>
                         {% endif %}

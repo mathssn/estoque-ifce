@@ -12,7 +12,7 @@
                 <label for="edit_produto_id_entrada" class="form-label">Produto</label>
                 <select id="edit_produto_id_entrada" name="edit_produto_id_entrada" class="form-select" disabled>
                     {% for produto_id, produto in produtos.items() %}
-                    {% if produto.status == 'ativo' or session.get('nivel_acesso') in ['Superusuario'] %}
+                    {% if produto.status == 'ativo' %}
                         <option value="{{ produto_id }}">{{ produto.nome }}</option>
                     {% endif %}
                     {% endfor %}
@@ -47,7 +47,9 @@
                 <label for="edit_fornecedor_id_entrada" class="form-label">Fornecedor</label>
                 <select id="edit_fornecedor_id_entrada" name="edit_fornecedor_id_entrada" class="form-select">
                   {% for fornecedor_id, fornecedor in fornecedores.items() %}
+                  {% if fornecedor.status.value == 'ativo' %}
                     <option value="{{ fornecedor_id }}">{{ fornecedor.nome }}</option>
+                  {% endif %}
                   {% endfor %}
                 </select>
             </div>

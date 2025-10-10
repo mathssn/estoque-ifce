@@ -26,7 +26,9 @@
                 <label for="fornecedor_id" class="form-label">Fornecedor</label>
                 <select id="fornecedor_id" name="fornecedor_id" class="form-select">
                     {% for fornecedor_id, fornecedor in fornecedores.items() %}
+                    {% if fornecedor.status.value == 'ativo' %}
                         <option value="{{ fornecedor_id }}">{{ fornecedor.nome }}</option>
+                    {% endif %}
                     {% endfor %}
                 </select>
             </div>
@@ -103,7 +105,7 @@
 </div>
 
 
-{% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+{% if ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
 <div style="display: flex; justify-content: center; margin-bottom: 15px;">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroAtaModal">
         Cadastrar nova ata
@@ -139,10 +141,10 @@
                     <td>{{ ata.tipo.value | replace('_', ' ') | capitalize }}</td>
                     <td>{{ ata.status.value | capitalize }}</td>
                     <td style="display: flex; gap: 10px;">
-                        {% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+                        {% if ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editAtaModal" onclick="fillEditForm('{{ata.id}}', '{{ata.numero}}', '{{ata.ano}}', '{{ata.fornecedor_id}}', '{{ata.tipo.value}}', '{{ata.status.value}}')">Editar</button>
                         {% else %}
-                            <button class="btn btn-secondary">Editar</button>
+                            <button class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
                         {% endif %}
                     </td>
                 </tr>
@@ -178,7 +180,9 @@
                 <label for="edit_fornecedor_id" class="form-label">Fornecedor</label>
                 <select name="edit_fornecedor_id" id="edit_fornecedor_id" class="form-select">
                     {% for fornecedor_id, fornecedor in fornecedores.items() %}
+                    {% if fornecedor.status.value == 'ativo' %}
                         <option value="{{ fornecedor_id }}">{{ fornecedor.nome }}</option>
+                    {% endif %}
                     {% endfor %}
                 </select>
             </div>
@@ -195,7 +199,7 @@
                 <label for="edit_status" class="form-label">Status</label>
                 <select id="edit_status" name="edit_status" class="form-select">
                     {% for st in ['ativo', 'inativo'] %}
-                        <option value="{{ st }}">{{ st }}</option>
+                        <option value="{{ st }}">{{ st | capitalize }}</option>
                     {% endfor %}
                 </select>
             </div>

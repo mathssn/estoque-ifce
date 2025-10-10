@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from app.utils import login_required
+from app.utils import login_required, role_required
 from app.models import *
 from app.estoque.models import *
 from app.database.db import get_session
@@ -21,18 +21,15 @@ def produtos_lista():
         return redirect('/')
     
     for produto in produtos_list.copy():
-        if produto.status == 'inativo' and session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
+        if produto.status == 'inativo' and any(role_1 == role_2 for role_1 in session.get('roles', []) for role_2 in ['admin', 'nutricionista']):
             produtos_list.remove(produto)
 
     return render_template('main/produtos.html', produtos=produtos_list)
 
 @produtos_bp.route('/cadastro/produtos/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def cadastro_produtos():
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('produtos.produtos_lista'))
-    
     try:
         codigo = int(request.form.get('codigo', 0))
         nome = request.form.get('nome').strip()
@@ -82,11 +79,8 @@ def cadastro_produtos():
 
 @produtos_bp.route('/editar/produto/<int:produto_id>/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def editar_produto(produto_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('produtos.produtos_lista'))
-    
     try:
         with get_session() as session_db:
             produto = session_db.query(Produto).filter_by(id=produto_id).first()
@@ -115,11 +109,8 @@ def editar_produto(produto_id):
 
 @produtos_bp.route('/excluir/produto/<int:produto_id>/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def excluir_produto(produto_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('produtos.produtos_lista'))
-    
     try:
         with get_session() as session_db:
             produto = session_db.query(Produto).filter_by(id=produto_id).first()

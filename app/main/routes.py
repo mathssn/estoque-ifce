@@ -44,6 +44,11 @@ def estoque_menu():
     
     return render_template('main/estoque.html', dia=dia, produtos_zerados=produtos_zerados, baixo_estoque=baixo_estoque)
 
+
+@main_bp.errorhandler(404)
+def page_not_found(error):
+    return render_template('erros/404.html'), 404
+
 @main_bp.route('/atas-menu')
 @login_required
 def atas_menu():
@@ -105,6 +110,15 @@ def format_empenho(value: int, ano: int):
         return string
     except:
         return f'{ano}NE{value}'
+    
+@main_bp.app_template_filter('check_intersection')
+def check_intersection(iteravel_1, iteravel_2):
+    try:
+        if any(i1 == i2 for i1 in iteravel_1 for i2 in iteravel_2):
+            return True
+    except:
+        pass
+    return False
 
 def register_filters(app):
     app.add_template_filter(format_date, 'format_date')
@@ -112,3 +126,4 @@ def register_filters(app):
     app.add_template_filter(format_empenho, 'format_empenho')
     app.add_template_filter(capitalize, 'capitalize')
     app.add_template_filter(replace, 'replace')
+    app.add_template_filter(check_intersection, 'check_intersection')

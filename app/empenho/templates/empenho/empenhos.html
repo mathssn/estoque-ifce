@@ -69,7 +69,7 @@
                     <td>{{ fornecedores.get(empenho.fornecedor_id).nome }}</td>
                     <td>{{ empenho.status.value | capitalize }}</td>
                     <td style="display: flex; gap: 10px;">
-                        {% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] and atas.get(empenho.ata_id) and atas.get(empenho.ata_id).status.value == 'ativo' %}
+                        {% if ['admin', 'nutricionista', 'financeiro'] | check_intersections(session.get('roles', [])) and atas.get(empenho.ata_id) and atas.get(empenho.ata_id).status.value == 'ativo' %}
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEmpenhoModal" onclick="fillEditForm('{{empenho.id}}', '{{empenho.numero}}', '{{empenho.ano}}', '{{empenho.fornecedor_id}}', '{{empenho.status.value}}')">Editar</button>
                         {% else %}
                             <button class="btn btn-secondary">Editar</button>

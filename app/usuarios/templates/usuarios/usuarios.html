@@ -31,7 +31,6 @@
                 <th scope="col">Nome</th>
                 <th scope="col">Email</th>
                 <th scope="col">Data de nascimento</th>
-                <th scope="col">Nivel de Acesso</th>
                 <th scope="col">Status</th>
                 <th scope="col">Ações</th>
             </tr>
@@ -44,10 +43,9 @@
                     <td>{{ usuario.nome }}</td>
                     <td>{{ usuario.email }}</td>
                     <td>{{ usuario.data_nascimento | format_date }}</td>
-                    <td>{{ usuario.nivel_acesso.value }}</td>
-                    <td>{{ usuario.status.value }}</td>
+                    <td>{{ usuario.status.value | capitalize }}</td>
                     <td style="display: flex; gap: 10px;">
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUsuarioModal" onclick="fillEditForm('{{usuario.id}}', '{{usuario.nome}}', '{{usuario.email}}', '{{usuario.data_nascimento}}', '{{usuario.nivel_acesso.value}}', '{{usuario.status.value}}')">Editar</button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUsuarioModal" onclick="fillEditForm('{{usuario.id}}', '{{usuario.nome}}', '{{usuario.email}}', '{{usuario.data_nascimento}}', '{{usuario.status.value}}', '{{roles_por_usuario.get(usuario.id, []) | tojson}}')">Editar</button>
                         <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#confirmarSenhaModal{{ usuario.id }}">
                             Resetar senha
                         </button>
@@ -91,7 +89,7 @@
     <div class="modal-content">
     <form action="{{ url_for('usuarios.cadastro_usuarios') }}" method="POST">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="cadastroUsuarioModalLabel">Cadastrar Produto</h1>
+        <h1 class="modal-title fs-5" id="cadastroUsuarioModalLabel">Cadastrar usuário</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -108,7 +106,7 @@
             
             <div class="mb-3">
                 <label for="senha" class="form-label">Senha</label>
-                <input id="senha" name="senha" type="text" class="form-control" value="12345678" required>
+                <input id="senha" name="senha" type="text" class="form-control" value="1234" required>
             </div>
 
             <div class="mb-3">
@@ -117,12 +115,15 @@
             </div>
 
             <div class="mb-3">
-                <label for="nivel_acesso" class="form-label">Nivel de acesso</label>
-                    <select id="nivel_acesso" name="nivel_acesso" class="form-select">
-                    {% for nivel in ['Superusuario', 'Admin', 'Editor', 'Leitor'] %}
-                        <option value="{{ nivel }}">{{ nivel }}</option>
-                    {% endfor %}
-                </select>
+            <label class="form-label">Funções (Roles)</label>
+            <div id="roles_container">
+            {% for role in roles %}
+                <div>
+                    <input class="form-check-input" type="checkbox" id="role_{{ role.id }}" name="roles" value="{{ role.id }}">
+                    <label class="form-check-label" for="role_{{ role.id }}">{{ role.nome | capitalize }}</label>
+                </div>
+            {% endfor %}
+            </div>
             </div>
         </div>
         <div class="modal-footer">
@@ -170,13 +171,16 @@
             </div>
 
             <div class="mb-3">
-                <label for="edit_nivel_acesso" class="form-label">Nivel de acesso</label>
-                <select id="edit_nivel_acesso" name="edit_nivel_acesso" class="form-select">
-                    {% for nivel in ['Superusuario', 'Admin', 'Editor', 'Leitor'] %}
-                        <option value="{{ nivel }}">{{ nivel }}</option>
-                    {% endfor %}
-                </select>
+            <label class="form-label">Funções (Roles)</label>
+            <div id="edit_roles_container">
+            {% for role in roles %}
+                <div>
+                    <input class="form-check-input" type="checkbox" id="edit_role_{{ role.id }}" name="roles" value="{{ role.id }}">
+                    <label class="form-check-label" for="edit_role_{{ role.id }}">{{ role.nome | capitalize }}</label>
+                </div>
+            {% endfor %}
             </div>
+</div>
         </div>
         
 
@@ -190,12 +194,16 @@
 </div>
 
 <script>
-    function fillEditForm(id, nome, email, data_nascimento, nivel_acesso, status) {
+    function fillEditForm(id, nome, email, data_nascimento, status, rolesUsuario) {
         document.getElementById("edit_nome").value = nome;
         document.getElementById("edit_email").value = email;
         document.getElementById("edit_data_nascimento").value = data_nascimento;
-        document.getElementById("edit_nivel_acesso").value = nivel_acesso;
         document.getElementById("edit_status").value = status;
+
+        const checkboxes = document.querySelectorAll("#edit_roles_container input[type='checkbox']");
+        checkboxes.forEach(cb => {
+            cb.checked = rolesUsuario.includes(parseInt(cb.value));
+        });
 
         document.getElementById("editUsuarioForm").action = "{{ url_for('usuarios.editar_usuario', user_id=0) }}".replace('0', id);
     }

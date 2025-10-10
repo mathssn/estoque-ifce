@@ -18,7 +18,6 @@ class Usuario(Base):
     email = Column(String(100), nullable=False, unique=True)
     senha = Column(String(255), nullable=False)
     data_nascimento = Column(Date, nullable=False)
-    nivel_acesso = Column(Enum(NivelAcessoEnum, values_callable=lambda enum_cls: [e.value for e in enum_cls]), nullable=False)
     status = Column(Enum(StatusEnum), nullable=False, default=StatusEnum.ativo)
 
 

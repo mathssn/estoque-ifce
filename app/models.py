@@ -1,5 +1,5 @@
 from app.database.base import Base, StatusEnum, Tipo
-from sqlalchemy import DECIMAL, Column, Integer, String, Date, Enum, ForeignKey, UniqueConstraint
+from sqlalchemy import DECIMAL, Column, Integer, String, Date, Enum, ForeignKey, UniqueConstraint, Boolean
 
 
 class Refeicao(Base):
@@ -60,3 +60,23 @@ class ItemNF(Base):
     produto_id = Column(Integer, ForeignKey("produto.id"), nullable=False)
     quantidade = Column(Integer, nullable=False)
     valor_unitario = Column(DECIMAL(10, 2), nullable=False)
+
+
+class Role(Base):
+    __tablename__ = "role"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    nome = Column(String(50), unique=True, nullable=False)
+
+
+class RoleUser(Base):
+    __tablename__ = "role_user"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    usuario_id = Column(Integer, ForeignKey("usuario.id"), nullable=False)
+    role_id = Column(Integer, ForeignKey("role.id"), nullable=False)
+    ativado = Column(Boolean, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint('usuario_id', 'role_id', name='uix_usuario_id_role_id'),
+    )

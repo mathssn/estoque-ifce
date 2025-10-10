@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
-from app.utils import login_required
+from app.utils import login_required, role_required
 from app.empenho.models import Empenho, Ata, ItemAta, ItemEmpenho
 from app.database.base import StatusEnum
 from app.models import Produto, Fornecedor, NotaFiscal, ItemNF
@@ -14,6 +14,7 @@ empenhos_bp = Blueprint('empenhos', __name__, template_folder='templates')
 
 @empenhos_bp.route('/empenhos/')
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro', 'diretoria')
 def empenhos_lista():
     page = request.args.get('page', default=1, type=int)
     p_page = 10
@@ -84,11 +85,8 @@ def form_empenhos_lista():
 
 @empenhos_bp.route('/cadastro/empenho/<int:ata_id>', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro')
 def cadastro_empenho(ata_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('atas.ata_info', ata_id=ata_id))
-    
     try:
         numero = int(request.form.get('numero'))
         ano = str(request.form.get('ano'))
@@ -137,11 +135,8 @@ def cadastro_empenho(ata_id):
 
 @empenhos_bp.route('/editar/empenho/<int:empenho_id>', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro')
 def editar_empenho(empenho_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('atas.listar_atas'))
-    
     try:
         with get_session() as session_db:
             empenho = session_db.query(Empenho).filter_by(id=empenho_id).first()
@@ -174,6 +169,7 @@ def editar_empenho(empenho_id):
 
 @empenhos_bp.route('/empenho/<int:empenho_id>')
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro', 'diretoria')
 def empenho_info(empenho_id):
     with get_session() as session_db:
         empenho = session_db.query(Empenho).filter_by(id=empenho_id).first()
@@ -223,11 +219,8 @@ def empenho_info(empenho_id):
 
 @empenhos_bp.route('/editar/item-empenho/<int:item_id>', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro')
 def editar_item_empenho(item_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('atas.listar_atas'))
-    
     try:
         with get_session() as session_db:
             item = session_db.query(ItemEmpenho).filter_by(id=item_id).first()
@@ -249,8 +242,8 @@ def editar_item_empenho(item_id):
             item.quantidade_empenhada = qntd_empenhada
 
 
-    except Exception as e:
-        flash(f'Falha ao editar item: {e}', 'danger')
+    except:
+        flash('Falha ao editar item!', 'danger')
     else:
         flash('Item editado com sucesso!', 'success')
 

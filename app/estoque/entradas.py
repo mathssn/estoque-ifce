@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 
 from app.database.utils import check_saldo, recalculate_entries_balance, get_last_movement
-from app.utils import login_required, get_form
+from app.utils import login_required, role_required
 
 from app.database.db import get_session
 from app.estoque.models import *
@@ -13,12 +13,8 @@ entradas_bp = Blueprint('entradas', __name__, template_folder='templates')
 
 @entradas_bp.route('/cadastro/entrada/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def cadastro_entrada():
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin', 'Editor']:
-        flash('Permissão negada', 'warning')
-        session['tipo_movimentacao'] = 'entrada'
-        return redirect(url_for('estoque.movimentacoes_diarias'))
-    
     try:
         produto_id = int(request.form.get('produto_id'))
         data = request.form.get('data_entrada', '').strip()
@@ -74,12 +70,8 @@ def cadastro_entrada():
 
 @entradas_bp.route('/editar/entrada/<int:entrada_id>/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def editar_entrada(entrada_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin', 'Editor']:
-        flash('Permissão negada', 'warning')
-        session['tipo_movimentacao'] = 'entrada'
-        return redirect(url_for('estoque.movimentacoes_diarias'))
-
     try:
         with get_session() as session_db:
             entrie = session_db.query(Entrada).filter_by(id=entrada_id).first()
@@ -123,12 +115,8 @@ def editar_entrada(entrada_id):
 
 @entradas_bp.route('/excluir/entrada/<int:entrada_id>/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def excluir_entrada(entrada_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin', 'Editor']:
-        flash('Permissão negada', 'warning')
-        session['tipo_movimentacao'] = 'entrada'
-        return redirect(url_for('estoque.movimentacoes_diarias'))
-
     try:
         with get_session() as session_db:
             entrie = session_db.query(Entrada).filter_by(id=entrada_id).first()

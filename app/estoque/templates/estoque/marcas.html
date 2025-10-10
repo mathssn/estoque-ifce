@@ -18,7 +18,7 @@
   </div>
 </div>
 
-{% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+{% if ['admin', 'nutricionista'] | check_intersection(session.get('roles')) %}
 <div style="display: flex; justify-content: center;">
   <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroMarcaModal" style="margin: 10px;">
     Cadastrar nova marca
@@ -45,7 +45,7 @@
           <td>{{ marca.nome }}</td>
           <td>{{ produtos[marca.produto_id].nome }}</td>
           <td style="display: flex; gap: 10px;">
-            {% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+          {% if ['admin', 'nutricionista'] | check_intersection(session.get('roles')) %}
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editMarcaModal"
             data-id="{{ marca.id }}"
             data-nome="{{ marca.nome }}"
@@ -53,7 +53,7 @@
             Editar
           </button>
           {% else %}
-          <button class="btn btn-secondary">Editar</button>
+          <button class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
           {% endif %}
           </td>
         </tr>
@@ -124,7 +124,7 @@
             <label for="produto_id" class="form-label">Produto</label>
             <select id="produto_id" name="produto_id" class="form-select" required>
               {% for p_id, p in produtos.items() %}
-                {% if p.status == 'ativo' or session.get('nivel_acesso') in ['Superusuario', 'Admin']%}
+                {% if p.status == 'ativo' or 'admin' in session.get('roles', []) %}
                   <option value="{{ p_id }}">{{ p.nome }}</option>
                 {% endif %}
               {% endfor %}
@@ -159,7 +159,7 @@
             <label for="edit_produto_id" class="form-label">Produto</label>
             <select id="edit_produto_id" name="edit_produto_id" class="form-select" required>
               {% for p_id, p in produtos.items() %}
-                {% if p.status == 'ativo' or session.get('nivel_acesso') in ['Superusuario', 'Admin']%}
+                {% if p.status == 'ativo' or 'admin' in session.get('roles', []) %}
                   <option value="{{ p_id }}">{{ p.nome }}</option>
                 {% endif %}
               {% endfor %}

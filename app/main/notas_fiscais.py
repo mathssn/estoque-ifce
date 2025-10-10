@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from datetime import date, datetime
 
-from app.utils import login_required
+from app.utils import login_required, role_required
 from app.models import *
 from app.empenho.models import Empenho, ItemEmpenho, Ata
 from app.database.db import get_session
@@ -93,11 +93,8 @@ def form_notas_lista():
 
 @notas_fiscais_bp.route('/cadastro/nota/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro')
 def cadastro_nota():
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('notas_fiscais.notas_lista'))
-
     try:
         numero = int(request.form.get('numero', 0))
         data_emissao = request.form.get('data_emissao', '').strip()
@@ -152,11 +149,8 @@ def cadastro_nota():
 
 @notas_fiscais_bp.route('/editar/nota/<int:nota_id>/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro')
 def editar_nota(nota_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('notas_fiscais.notas_lista'))
-
     try:
         numero = int(request.form.get('edit_numero', 0))
         data_emissao = request.form.get('edit_data_emissao', 0).strip()
@@ -239,11 +233,8 @@ def nota_info(nota_id):
 
 @notas_fiscais_bp.route('/editar/item-nf/<int:item_id>', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro')
 def editar_item_nf(item_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('atas.listar_atas'))
-    
     try:
         with get_session() as session_db:
             item = session_db.query(ItemNF).filter_by(id=item_id).first()
@@ -309,6 +300,5 @@ def verificar_saldo_empenho(session_db: Session, empenho_id: int, produto_id: in
         total += item_.quantidade
     
     if total > item_empenho.quantidade_empenhada:
-        print(total, item_empenho.quantidade_empenhada)
         return False
     return True

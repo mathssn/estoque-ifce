@@ -70,7 +70,7 @@
 </div>
 
 
-{% if session.get('nivel_acesso') in ['Superusuario', 'Admin'] %}
+{% if ['admin', 'nutricionista'] | check_intersection(session.get('roles', [])) %}
 <div style="display: flex; justify-content: center; margin-bottom: 15px;">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroProdutoModal">
         Cadastrar novo produto
@@ -121,11 +121,12 @@
                     <td>{{ produto.quantidade_minima }}</td>
                     <td>{{ produto.status.value | capitalize }}</td>
                     <td style="display: flex; gap: 10px;">
-                        {% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+                        {% if ['admin', 'nutricionista'] | check_intersection(session.get('roles', [])) %}
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProdutoModal" onclick="fillEditForm('{{produto.id}}', '{{produto.codigo}}', '{{produto.nome}}', '{{produto.descricao}}', '{{produto.unidade}}', '{{produto.quantidade_minima}}', '{{produto.status.value}}', '{{produto.tipo.value}}')">Editar</button>
                         {% else %}
-                            <button type="button" class="btn btn-secondary">Editar</button>
-                        {% endif %}                    </td>
+                            <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
+                        {% endif %}                    
+                    </td>
                     {% endif %}
             </tr>
             {% else %}
@@ -169,10 +170,10 @@
                     <td>{{ produto.quantidade_minima }}</td>
                     <td>{{ produto.status.value | capitalize }}</td>
                     <td style="display: flex; gap: 10px;">
-                        {% if session.get('nivel_acesso') in ['Superusuario', 'Admin', 'Editor'] %}
+                        {% if ['admin', 'nutricionista'] | check_intersection(session.get('roles', [])) %}
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProdutoModal" onclick="fillEditForm('{{produto.id}}', '{{produto.codigo}}', '{{produto.nome}}', '{{produto.descricao}}', '{{produto.unidade}}', '{{produto.quantidade_minima}}', '{{produto.status.value}}', '{{produto.tipo.value}}')">Editar</button>
                         {% else %}
-                            <button type="button" class="btn btn-secondary">Editar</button>
+                            <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
                         {% endif %}
                     </td>
                     {% endif %}

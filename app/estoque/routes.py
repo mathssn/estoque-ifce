@@ -1,9 +1,8 @@
 from flask import Blueprint, request, session, render_template, redirect, flash, url_for
 from datetime import date, datetime
-from sqlalchemy.orm import Session as S, aliased
-from sqlalchemy import func
+from sqlalchemy.orm import Session as S
 
-from app.utils import login_required
+from app.utils import login_required, role_required
 from app.database.db import *
 from app.database.utils import *
 from app.utils import somar_dia
@@ -68,11 +67,8 @@ def movimentacoes_diarias():
 
 @estoque_bp.route('/fechar/dia/<data>')
 @login_required
+@role_required('admin', 'nutricionista')
 def fechar_dia(data: str):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin', 'Editor']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('estoque.movimentacoes_diarias'))
-
     cod = verificar_dias_abertos()
     if cod == 1:
         flash('Não há dia aberto', 'danger')

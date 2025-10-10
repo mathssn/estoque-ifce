@@ -1,4 +1,4 @@
-from flask import session, request, redirect, flash, url_for
+from flask import session, request, redirect, flash, url_for, abort
 from functools import wraps
 from datetime import datetime, timedelta
 
@@ -11,6 +11,21 @@ def login_required(f):
             return redirect(url_for('usuarios.login'))
         return f(*args, **kwargs)
     return decorated_function
+
+
+def role_required(*roles_permitidos):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            roles_user = session.get('roles', [])
+            if not any(role in roles_user for role in roles_permitidos):
+                flash('Permissão negada', 'warning')
+                return redirect(url_for('main.index'))
+                
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
+
 
 
 def somar_dia(data: str, formato: str, quantidade: int = 1) -> str:

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, session, render_template, redirect, flash, url_for
 from sqlalchemy.exc import IntegrityError
 
-from app.utils import login_required
+from app.utils import login_required, role_required
 from app.models import *
 from app.database.db import get_session
 
@@ -22,11 +22,8 @@ def fornecedores_lista():
 
 @fornecedores_bp.route('/cadastro/fornecedor/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def cadastro_fornecedor():
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('fornecedores.fornecedores_lista'))
-    
     nome = request.form.get('nome', '').strip()
     telefone = request.form.get('telefone', '').strip()
     email = request.form.get('email', '').strip()
@@ -55,11 +52,8 @@ def cadastro_fornecedor():
 
 @fornecedores_bp.route('/editar/fornecedor/<int:fornecedor_id>/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def editar_fornecedor(fornecedor_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('fornecedores.fornecedores_lista'))
-
     try:
         with get_session() as session_db:
             fornecedor = session_db.query(Fornecedor).filter_by(id=fornecedor_id).first()

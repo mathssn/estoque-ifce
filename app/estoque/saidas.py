@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 
 from app.database.utils import check_saldo, recalculate_exits_balance, get_last_movement
-from app.utils import login_required
+from app.utils import login_required, role_required
 from app.estoque.models import *
 from app.database.db import get_session
 
@@ -11,11 +11,8 @@ saidas_bp = Blueprint('saidas', __name__, template_folder='templates')
 
 @saidas_bp.route('/cadastro/saida/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def cadastro_saida():
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin', 'Editor']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('estoque.movimentacoes_diarias'))
-    
     try:
         produto_id = int(request.form.get('produto_id'))
         refeicao_id = int(request.form.get('refeicao_id'))
@@ -79,11 +76,8 @@ def cadastro_saida():
 
 @saidas_bp.route('/editar/saida/<int:saida_id>/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def editar_saida(saida_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin', 'Editor']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('estoque.movimentacoes_diarias'))
-    
     try:
         with get_session() as session_db:
             exit = session_db.query(Saida).filter_by(id=saida_id).first()
@@ -125,11 +119,8 @@ def editar_saida(saida_id):
 
 @saidas_bp.route('/excluir/saida/<int:saida_id>/', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista')
 def excluir_saida(saida_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin', 'Editor']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('estoque.movimentacoes_diarias'))
-    
     try:
         with get_session() as session_db:
             exit = session_db.query(Saida).filter_by(id=saida_id).first()

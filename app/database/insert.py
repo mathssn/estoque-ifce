@@ -178,7 +178,7 @@ def insert_usuario(target, connection, **kw):
     senha_hash = generate_password_hash("1234")
     connection.execute(
         Usuario.__table__.insert(),
-        ({"nome": "Matheus Soares do Nascimento", "email": "matheus.soares10@aluno.ifce.edu.br", "senha": senha_hash, "data_nascimento": "2004-10-02", "nivel_acesso": "Superusuario"})
+        ({"nome": "Matheus Soares do Nascimento", "email": "matheus.soares10@aluno.ifce.edu.br", "senha": senha_hash, "data_nascimento": "2004-10-02"})
     )
 @event.listens_for(DiasFechados.__table__, "after_create")
 def insert_dias_fechados(target, connection, **kw):
@@ -262,4 +262,22 @@ def insert_nota_fiscal(target, connection, **kw):
     connection.execute(
         NotaFiscal.__table__.insert(),
         {"numero": "-", "data_emissao": date, "empenho_id": 1, "fornecedor_id": 1, "serie": 0}
+    )
+
+
+@event.listens_for(Role.__table__, "after_create")
+def insert_roles(target, connection, **kw):
+    roles = ['admin', 'nutricionista', 'financeiro', 'assistencia', 'diretoria']
+
+    for role in roles:
+        connection.execute(
+            Role.__table__.insert(),
+            {"nome": role}
+        )
+
+@event.listens_for(RoleUser.__table__, "after_create")
+def insert_roles_user(target, connection, **kw):
+    connection.execute(
+        RoleUser.__table__.insert(),
+        {"usuario_id": 1, "role_id": 1, "ativado": True}
     )

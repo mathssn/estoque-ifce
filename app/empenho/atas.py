@@ -6,12 +6,13 @@ from decimal import Decimal, InvalidOperation
 from app.database.db import get_session
 from app.empenho.models import Ata, Empenho, ItemAta, ItemEmpenho
 from app.models import Fornecedor, Produto, NotaFiscal, ItemNF
-from app.utils import login_required
+from app.utils import login_required, role_required
 
 atas_bp = Blueprint('atas', __name__, template_folder='templates')
 
 @atas_bp.route('/atas')
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro', 'diretoria')
 def listar_atas():
 
     try:
@@ -50,11 +51,8 @@ def listar_atas():
 
 @atas_bp.route('/cadastro/ata', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro')
 def cadastro_ata():
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('atas.listar_atas'))
-    
     try:
         numero = int(request.form.get('numero', 0))
         ano = int(request.form.get('ano', 0))
@@ -93,11 +91,8 @@ def cadastro_ata():
 
 @atas_bp.route('/editar/ata/<int:ata_id>', methods=['POST'])
 @login_required
-def editar_ata(ata_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('atas.listar_atas'))
-    
+@role_required('admin', 'nutricionista', 'financeiro')
+def editar_ata(ata_id):    
     try:
         with get_session() as session_db:
             ata = session_db.query(Ata).filter_by(id=ata_id).first()
@@ -141,6 +136,7 @@ def editar_ata(ata_id):
 
 @atas_bp.route('/atas/<int:ata_id>')
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro', 'diretoria')
 def ata_info(ata_id):
     try:
         with get_session() as session_db:
@@ -182,11 +178,8 @@ def ata_info(ata_id):
 
 @atas_bp.route('/cadastro/item-ata/<int:ata_id>', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro')
 def cadastro_item_ata(ata_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('atas.listar_atas'))
-
     try:
         produto_id = int(request.form.get('produto_id'))
         qntd_maxima = int(request.form.get('quantidade_maxima', 0))
@@ -232,11 +225,8 @@ def cadastro_item_ata(ata_id):
 
 @atas_bp.route('/editar/item-ata/<int:item_id>', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro')
 def editar_item_ata(item_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('atas.listar_atas'))
-
     try:
         with get_session() as session_db:
             item = session_db.query(ItemAta).filter_by(id=item_id).first()
@@ -271,8 +261,8 @@ def editar_item_ata(item_id):
                     item_nf = session_db.query(ItemNF).filter_by(nota_fiscal_id=nota.id).filter_by(produto_id=item.produto_id).first()
                     item_nf.valor_unitario = valor_unit
 
-    except Exception as e:
-        flash(f'Falha ao editar item: {e}', 'danger')
+    except:
+        flash('Falha ao editar item!', 'danger')
     else:
         flash('Item da ata editado com sucesso!', 'success')
 
@@ -281,11 +271,8 @@ def editar_item_ata(item_id):
 
 @atas_bp.route('/excluir/item-ata/<int:item_id>', methods=['POST'])
 @login_required
+@role_required('admin', 'nutricionista', 'financeiro')
 def excluir_item_ata(item_id):
-    if session.get('nivel_acesso') not in ['Superusuario', 'Admin']:
-        flash('Permissão negada', 'warning')
-        return redirect(url_for('atas.listar_atas'))
-
     try:
         with get_session() as session_db:
             item = session_db.query(ItemAta).filter_by(id=item_id).first()
@@ -307,7 +294,7 @@ def excluir_item_ata(item_id):
                     item_nf = session_db.query(ItemNF).filter_by(nota_fiscal_id=nota.id).filter_by(produto_id=item.produto_id).first()
                     session_db.delete(item_nf)
     except:
-        flash(f'Falha ao deletar item da ata', 'danger')
+        flash('Falha ao deletar item da ata', 'danger')
     else:
         flash('Item deletado com sucesso', 'success')
     
