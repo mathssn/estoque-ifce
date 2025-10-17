@@ -1,11 +1,12 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
+from dotenv import load_dotenv
+import os
 
-
-db_name = 'refeitorio_ifce'
-username = 'root'
-password = '1234'
+db_name = os.environ.get('DB_NAME')
+username = os.environ.get('DB_USERNAME')
+password = os.environ.get('DB_PASSWORD')
 
 db = create_engine(f"mysql+mysqlconnector://{username}:{password}@localhost:3306")
 
