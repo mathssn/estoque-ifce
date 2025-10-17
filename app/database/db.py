@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 
 
-db_name = 'teste_refeitorio_ifce'
+db_name = 'refeitorio_ifce'
 username = 'root'
 password = '1234'
 
