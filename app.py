@@ -1,6 +1,6 @@
 from app.database.base import Base
 from app.database.db import db
-from app import *
+from app import create_app
 from app.database import insert
 
 app = create_app()

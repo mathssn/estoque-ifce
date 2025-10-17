@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from dotenv import load_dotenv
 import os
 
+load_dotenv()
 db_name = os.environ.get('DB_NAME')
 username = os.environ.get('DB_USERNAME')
 password = os.environ.get('DB_PASSWORD')

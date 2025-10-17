@@ -177,6 +177,7 @@ pereciveis = [
 
 @event.listens_for(Usuario.__table__, "after_create")
 def insert_usuario(target, connection, **kw):
+    load_dotenv()
     nome = os.environ.get('ADMIN_USERNAME')
     email = os.environ.get('ADMIN_EMAIL')
     senha = os.environ.get('ADMIN_PASSWORD')
