@@ -78,6 +78,7 @@
                 <th scope="col">Cod.</th>
                 <th scope="col">Nome</th>
                 <th scope="col">Qntd. Máxima</th>
+                <th scope="col">Marcas</th>
                 <th scope="col">Valor Unitário</th>
                 <th scope="col">Valor Total</th>
                 <th scope="col">Ações</th>
@@ -91,11 +92,12 @@
                     <td>{{ produtos.get(item.produto_id).codigo }}</td>
                     <td>{{ produtos.get(item.produto_id).nome }}</td>
                     <td>{{ item.quantidade_maxima }}</td>
+                    <td>{{ marcas.get(item.marca_id).nome }}</td>
                     <td>{{ item.valor_unitario | format_money }}</td>
                     <td>{{ item.total | format_money }}</td>
                     <td style="display: flex; gap: 10px;">
                       {% if ata.status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editItemAtaModal" onclick="fillEditItemForm('{{item.id}}', '{{item.produto_id}}', '{{item.quantidade_maxima}}', '{{item.valor_unitario | format_money(False) }}')">Editar</button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editItemAtaModal" onclick="fillEditItemForm('{{item.id}}', '{{item.produto_id}}', '{{item.quantidade_maxima}}', '{{item.marca_id}}', '{{item.valor_unitario | format_money(False) }}')">Editar</button>
                         <form action="{{ url_for('atas.excluir_item_ata', item_id=item.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este item?')">
                           <button type="submit" class="btn btn-danger">Excluir</button>
                         </form>
@@ -206,7 +208,7 @@
                 
                 {% for empenho in empenhos %}
                   {% for it in empenho_itens.get(empenho.id) %}
-                    {% if it.produto_id == item.produto_id %}
+                    {% if it.item_ata_id == item.id %}
                       <td class="col-empenho">{{ it.quantidade_empenhada }}</td>
                     {% endif %}
                   {% endfor %}
@@ -253,6 +255,15 @@
           </div>
 
           <div class="mb-3">
+            <label for="marca_id" class="form-label">Marca</label>
+            <select id="marca_id" name="marca_id" class="form-select" required>
+              {% for marca_id, marca in marcas.items() %}
+                <option value="{{ marca_id }}">{{ marca.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
             <label for="valor_unitario" class="form-label">Valor Unitário</label>
             <input id="valor_unitario" name="valor_unitario" type="text" value="0,00" class="form-control" required>
           </div>
@@ -290,6 +301,15 @@
           <div class="mb-3">
             <label for="edit_quantidade_maxima" class="form-label">Quantidade Máxima</label>
             <input id="edit_quantidade_maxima" name="edit_quantidade_maxima" type="number" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_marca_id" class="form-label">Marca</label>
+            <select id="edit_marca_id" name="edit_marca_id" class="form-select" required>
+              {% for marca_id, marca in marcas.items() %}
+                <option value="{{ marca_id }}">{{ marca.nome }}</option>
+              {% endfor %}
+            </select>
           </div>
 
           <div class="mb-3">
@@ -383,9 +403,10 @@
 </div>
 
 <script>
-    function fillEditItemForm(id, produto_id, quantidade_maxima, valor_unitario) {
+    function fillEditItemForm(id, produto_id, quantidade_maxima, marca_id, valor_unitario) {
         document.getElementById("edit_produto_id").value = produto_id;
         document.getElementById("edit_quantidade_maxima").value = quantidade_maxima;
+        document.getElementById("edit_marca_id").value = marca_id;
         document.getElementById("edit_valor_unitario").value = valor_unitario;
 
         document.getElementById("editItemAtaForm").action = "{{ url_for('atas.editar_item_ata', item_id=0) }}".replace('0', id);

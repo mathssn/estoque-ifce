@@ -57,10 +57,8 @@ class ItemNF(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     nota_fiscal_id = Column(Integer, ForeignKey("nota_fiscal.id"), nullable=False)
-    produto_id = Column(Integer, ForeignKey("produto.id"), nullable=False)
     quantidade = Column(Integer, nullable=False)
-    valor_unitario = Column(DECIMAL(10, 2), nullable=False)
-
+    item_empenho_id = Column(Integer, ForeignKey("item_empenho.id", ondelete="CASCADE"), nullable=False)
 
 class Role(Base):
     __tablename__ = "role"

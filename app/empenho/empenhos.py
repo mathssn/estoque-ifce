@@ -121,7 +121,7 @@ def cadastro_empenho(ata_id):
             empenho_id = novo_empenho.id
 
             for item in itens_ata:
-                item_empenho = ItemEmpenho(empenho_id=novo_empenho.id, produto_id=item.produto_id, quantidade_empenhada=0, valor_unitario=item.valor_unitario)
+                item_empenho = ItemEmpenho(empenho_id=novo_empenho.id, quantidade_empenhada=0, item_ata_id=item.id)
                 session_db.add(item_empenho)
     except IntegrityError as e:
         if e.orig.args[0] == 1452:
@@ -182,8 +182,15 @@ def empenho_info(empenho_id):
             flash('Não foi possivel recuperar a ata referente ao empenho!')
             return redirect(url_for('atas.listar_atas'))
         
-        itens = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho_id).order_by(ItemEmpenho.produto_id).all()
+        itens = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho_id).all()
         for it in itens:
+            item_ata = session_db.query(ItemAta).filter_by(id=it.item_ata_id).first()
+            if item_ata:
+                it.produto_id = item_ata.produto_id
+                it.valor_unitario = item_ata.valor_unitario
+            else:
+                flash('Não foi possivel identificar itens para ata desse empenho!', 'danger')
+                raise Exception()
             it.recebido = 0
             it.saldo = 0
 
@@ -198,9 +205,11 @@ def empenho_info(empenho_id):
             itens_nf = session_db.query(ItemNF).filter_by(nota_fiscal_id=nota.id).all()
             for item_nf in itens_nf:
                 for it in itens:
-                    if it.produto_id != item_nf.produto_id:
+                    if it.id != item_nf.item_empenho_id:
                         continue
-
+                    
+                    item_nf.produto_id = it.produto_id
+                    item_nf.valor_unitario = it.valor_unitario
                     it.recebido += item_nf.quantidade
             notas_itens[nota.id] = itens_nf
 
@@ -213,7 +222,7 @@ def empenho_info(empenho_id):
         item.saldo = item.quantidade_empenhada - item.recebido
         item.valor_restante = (item.valor_unitario * item.saldo).quantize(Decimal('0.01'))
         total_restante += item.valor_restante
-        
+    
     return render_template('empenho/empenho.html', empenho=empenho, itens=itens, produtos=produtos, total=total, fornecedor=fornecedor, notas_fiscais=notas_fiscais, notas_itens=notas_itens, total_restante=total_restante, ata=ata)
 
 
@@ -235,9 +244,20 @@ def editar_item_empenho(item_id):
             except (TypeError, ValueError):
                 raise Exception('Valor invalido!')
             empenho = session_db.query(Empenho).filter_by(id=item.empenho_id).first()
-            if not verificar_saldo_ata(session_db, empenho.ata_id, item.produto_id, qntd_empenhada, empenho.id):
+            if not verificar_saldo_item_ata(session_db, empenho.ata_id, item.item_ata_id, qntd_empenhada, empenho.id):
                 flash('Esse valor ultrapassa a quantidade maxima da ata', 'danger')
                 return redirect(url_for('empenhos.empenho_info', empenho_id=empenho.id))
+
+            notas = session_db.query(NotaFiscal).filter_by(empenho_id=empenho_id).all()
+            recebido = 0
+            for nota in notas:
+                item_nf = session_db.query(ItemNF).filter_by(item_empenho_id=item.id).filter_by(nota_fiscal_id=nota.id).first()
+                if item_nf:
+                    recebido += item_nf.quantidade
+            
+            if recebido > qntd_empenhada:
+                flash('Não é possivel diminuir o valor atual do empenho', 'danger')
+                raise Exception()
 
             item.quantidade_empenhada = qntd_empenhada
 
@@ -250,24 +270,34 @@ def editar_item_empenho(item_id):
     return redirect(url_for('empenhos.empenho_info', empenho_id=empenho_id))
 
 def validar_dados(empenho: Empenho):
+    if not empenho.numero or not empenho.ano or not empenho.ata_id or not empenho.fornecedor_id or not empenho.status:
+        return False
+
+    if empenho.numero <= 0:
+        return False
+
+    if not (isinstance(empenho.ano, str) and empenho.ano.isdigit() and len(empenho.ano) == 4):
+        return False
+
     return True
 
 
-def verificar_saldo_ata(session_db: Session, ata_id: int, produto_id: int, quantidade, empenho_id):
+
+def verificar_saldo_item_ata(session_db: Session, ata_id: int, item_id: int, quantidade, empenho_id):
     ata = session_db.query(Ata).filter_by(id=ata_id).first()
     if not ata:
         return False
     
-    item_ata = session_db.query(ItemAta).filter_by(ata_id=ata_id).filter_by(produto_id=produto_id).first()
+    item_ata = session_db.query(ItemAta).filter_by(id=item_id).first()
     
     total = quantidade
     empenhos = session_db.query(Empenho).filter_by(ata_id=ata_id).all()
     for empenho in empenhos:
         if empenho.id == empenho_id:
             continue
-        item_ = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho.id).filter_by(produto_id=produto_id).first()
+        item_ = session_db.query(ItemEmpenho).filter_by(item_ata_id=item_id).filter_by(empenho_id=empenho.id).first()
         total += item_.quantidade_empenhada
-    
+
     if total > item_ata.quantidade_maxima:
         return False
     return True

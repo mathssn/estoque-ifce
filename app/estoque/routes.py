@@ -8,6 +8,7 @@ from app.database.utils import *
 from app.utils import somar_dia
 from app.estoque.models import *
 from app.models import *
+from app.empenho.models import *
 from app.usuarios.models import Usuario
 
 estoque_bp = Blueprint('estoque', __name__, template_folder='templates')
@@ -32,8 +33,21 @@ def movimentacoes_diarias():
         entradas_diarias = session_db.query(Entrada).filter_by(data_entrada=data).order_by(Entrada.produto_id).all()
         saidas_diarias = session_db.query(Saida).filter_by(data_saida=data).order_by(Saida.refeicao_id).order_by(Saida.produto_id).all()
 
-        produtos_dict, fornecedores_dict, marcas_dict, nota_fiscal_dict, refeicoes = get_additional_info(session_db)
+        produtos_dict, fornecedores_dict, marcas_dict, refeicoes = get_additional_info(session_db)
         saldos_diarios = session_db.query(SaldoDiario).filter_by(data=data).all()
+        nfs_1 = session_db.query(
+            NotaFiscal
+        ).join(
+            Empenho, Empenho.id == NotaFiscal.empenho_id
+        ).join(
+            Ata, Ata.id == Empenho.ata_id
+        ).filter(
+            Ata.tipo == 'nao_perecivel'
+        ).group_by(
+            NotaFiscal.id
+        ).all()
+        nfs_2 = session_db.query(NotaFiscal).filter_by(id=1).all()
+        nota_fiscal_dict = {nf.id: nf for nf in nfs_2 + nfs_1}
 
         dia = session_db.query(DiasFechados).filter_by(data=data).first()
 
@@ -112,10 +126,9 @@ def get_additional_info(session_db: S):
     produtos_dict = {p.id: p for p in session_db.query(Produto).all()}
     fornecedores_dict = {f.id: f for f in session_db.query(Fornecedor).all()}
     marcas_dict = {m.id: m for m in session_db.query(Marca).order_by(Marca.nome).all()}
-    nota_fiscal_dict = {nf.id: nf for nf in session_db.query(NotaFiscal).all()}
     refeicoes = {d.id: d for d in session_db.query(Refeicao).all()}
 
-    return produtos_dict, fornecedores_dict, marcas_dict, nota_fiscal_dict, refeicoes
+    return produtos_dict, fornecedores_dict, marcas_dict, refeicoes
 
 
 

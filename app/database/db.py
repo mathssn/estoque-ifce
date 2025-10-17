@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 
 
-db_name = 'refeitorio_ifce'
+db_name = 'teste_refeitorio_ifce'
 username = 'root'
 password = '1234'
 
@@ -12,7 +12,7 @@ db = create_engine(f"mysql+mysqlconnector://{username}:{password}@localhost:3306
 with db.connect() as conn:
     conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {db_name}"))
 
-db = create_engine(f"mysql+mysqlconnector://{username}:{password}@localhost:3306/{db_name}")
+db = create_engine(f"mysql+mysqlconnector://{username}:{password}@localhost:3306/{db_name}", echo=True)
 Session = sessionmaker(bind=db, expire_on_commit=False)
 
 

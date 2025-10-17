@@ -24,6 +24,7 @@ class ItemAta(Base):
     ata_id = Column(Integer, ForeignKey("ata.id"), nullable=False)
     produto_id = Column(Integer, ForeignKey("produto.id"), nullable=False)
     quantidade_maxima = Column(Integer, nullable=False)
+    marca_id = Column(Integer, ForeignKey("marca.id"))
     valor_unitario = Column(DECIMAL(10, 2), nullable=False)
 
     __table_args__ = (
@@ -51,10 +52,5 @@ class ItemEmpenho(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     empenho_id = Column(Integer, ForeignKey("empenho.id"), nullable=False)
-    produto_id = Column(Integer, ForeignKey("produto.id"), nullable=False)
     quantidade_empenhada = Column(Integer, nullable=False)
-    valor_unitario = Column(DECIMAL(10, 2), nullable=False)
-
-    __table_args__ = (
-        UniqueConstraint('empenho_id', 'produto_id', name='uix_empenho_produto'),
-    )
+    item_ata_id = Column(Integer, ForeignKey("item_ata.id", ondelete="CASCADE"), nullable=False)

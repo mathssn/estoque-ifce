@@ -5,6 +5,7 @@ from decimal import Decimal, InvalidOperation
 
 from app.database.db import get_session
 from app.empenho.models import Ata, Empenho, ItemAta, ItemEmpenho
+from app.estoque.models import Marca
 from app.models import Fornecedor, Produto, NotaFiscal, ItemNF
 from app.utils import login_required, role_required
 
@@ -150,13 +151,14 @@ def ata_info(ata_id):
             empenhos = session_db.query(Empenho).filter_by(ata_id=ata_id).order_by(Empenho.numero).all()
             fornecedor = session_db.query(Fornecedor).filter_by(id=ata.fornecedor_id).first()
             produtos = {p.id: p for p in session_db.query(Produto).filter_by(tipo=ata.tipo).all()}
+            marcas = {m.id: m for m in session_db.query(Marca).order_by(Marca.nome).all()}
 
             empenho_itens = {}
             for empenho in empenhos:
                 itens_empenho = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho.id).all()
                 for it_empenho in itens_empenho:
                     for it in itens:
-                        if it.produto_id == it_empenho.produto_id:
+                        if it.id == it_empenho.item_ata_id:
                             it.quantidade_empenhada += it_empenho.quantidade_empenhada
 
                 empenho_itens[empenho.id] = itens_empenho
@@ -174,7 +176,7 @@ def ata_info(ata_id):
         item.valor_restante = (item.valor_unitario * item.saldo).quantize(Decimal('0.01'))
         total_restante += item.valor_restante    
 
-    return render_template('empenho/ata.html', ata=ata, itens=itens, produtos=produtos, fornecedor=fornecedor, total=total, empenhos=empenhos, empenho_itens=empenho_itens, total_restante=total_restante)
+    return render_template('empenho/ata.html', ata=ata, itens=itens, produtos=produtos, fornecedor=fornecedor, total=total, empenhos=empenhos, empenho_itens=empenho_itens, total_restante=total_restante, marcas=marcas)
 
 @atas_bp.route('/cadastro/item-ata/<int:ata_id>', methods=['POST'])
 @login_required
@@ -182,6 +184,7 @@ def ata_info(ata_id):
 def cadastro_item_ata(ata_id):
     try:
         produto_id = int(request.form.get('produto_id'))
+        marca_id = int(request.form.get('marca_id'))
         qntd_maxima = int(request.form.get('quantidade_maxima', 0))
         valor_unit = request.form.get('valor_unitario').strip()
         valor_unit = valor_unit.replace('.', '')
@@ -196,7 +199,7 @@ def cadastro_item_ata(ata_id):
         flash('Valor unitário invalido!', 'danger')
         return redirect(url_for('atas.ata_info', ata_id=ata_id))
     
-    novo_item = ItemAta(ata_id=ata_id, produto_id=produto_id, quantidade_maxima=qntd_maxima, valor_unitario=valor_unit)
+    novo_item = ItemAta(ata_id=ata_id, produto_id=produto_id, quantidade_maxima=qntd_maxima, marca_id=marca_id, valor_unitario=valor_unit)
 
     try:
         with get_session() as session_db:
@@ -211,10 +214,17 @@ def cadastro_item_ata(ata_id):
                 return redirect(url_for('atas.ata_info', ata_id=ata_id))
             
             session_db.add(novo_item)
+            session_db.flush()
             empenhos = session_db.query(Empenho).filter_by(ata_id=ata_id).all()
             for empenho in empenhos:
-                novo_item_empenho = ItemEmpenho(empenho_id=empenho.id, produto_id=produto_id, quantidade_empenhada=0, valor_unitario=valor_unit)
+                novo_item_empenho = ItemEmpenho(empenho_id=empenho.id, quantidade_empenhada=0, item_ata_id=novo_item.id)
                 session_db.add(novo_item_empenho)
+                session_db.flush()
+
+                nfs = session_db.query(NotaFiscal).filter_by(empenho_id=empenho.id).all()
+                for nf in nfs:
+                    novo_item_nf = ItemNF(nota_fiscal_id=nf.id, quantidade=0, item_empenho_id=novo_item_empenho.id)
+                    session_db.add(novo_item_nf)
 
     except:
         flash('Falha ao cadastrar item!', 'danger')
@@ -227,15 +237,18 @@ def cadastro_item_ata(ata_id):
 @login_required
 @role_required('admin', 'nutricionista', 'financeiro')
 def editar_item_ata(item_id):
+    ata_id = None
     try:
         with get_session() as session_db:
             item = session_db.query(ItemAta).filter_by(id=item_id).first()
             if not item:
                 flash('Item da ata não encontrado', 'danger')
                 return redirect(url_for('atas.listar_atas'))
+            ata_id = item.ata_id
 
             try:
                 qntd_maxima = int(request.form.get('edit_quantidade_maxima', 0))
+                marca_id = int(request.form.get('edit_marca_id'))
                 valor_unit = request.form.get('edit_valor_unitario').strip()
                 valor_unit = valor_unit.replace('.', '')
                 valor_unit = valor_unit.replace(',', '.')
@@ -250,23 +263,15 @@ def editar_item_ata(item_id):
 
             item.quantidade_maxima = qntd_maxima
             item.valor_unitario = valor_unit
-
-            empenhos = session_db.query(Empenho).filter_by(ata_id=item.ata_id).all()
-            for empenho in empenhos:
-                item_ = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho.id).filter_by(produto_id=item.produto_id).first()
-                item_.valor_unitario = valor_unit
-
-                notas_fiscais = session_db.query(NotaFiscal).filter_by(empenho_id=empenho.id).all()
-                for nota in notas_fiscais:
-                    item_nf = session_db.query(ItemNF).filter_by(nota_fiscal_id=nota.id).filter_by(produto_id=item.produto_id).first()
-                    item_nf.valor_unitario = valor_unit
-
+            item.marca_id = marca_id
     except:
         flash('Falha ao editar item!', 'danger')
     else:
         flash('Item da ata editado com sucesso!', 'success')
 
-    return redirect(url_for('atas.ata_info', ata_id=item.ata_id))
+    if ata_id:
+        return redirect(url_for('atas.ata_info', ata_id=ata_id))
+    return redirect(url_for('atas.listar_atas'))
 
 
 @atas_bp.route('/excluir/item-ata/<int:item_id>', methods=['POST'])

@@ -208,7 +208,7 @@
             <label for="edit_empenho_id" class="form-label">Empenho</label>
             <select id="edit_empenho_id" name="edit_empenho_id" class="form-select" disabled>
               {% for e_id, e in empenhos.items() %}
-              <option value="{{ e_id }}">{{ e.ano }}NE{{ e.numero }}</option>
+              <option value="{{ e_id }}">{{ e.numero | format_empenho(e.ano) }}</option>
               {% endfor %}
             </select>
           </div>

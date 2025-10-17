@@ -4,6 +4,8 @@ from app.models import *
 from app.empenho.models import *
 from sqlalchemy import event
 from werkzeug.security import generate_password_hash
+from dotenv import load_dotenv
+import os
 import datetime as dt
 
 produtos = [    
@@ -175,10 +177,13 @@ pereciveis = [
 
 @event.listens_for(Usuario.__table__, "after_create")
 def insert_usuario(target, connection, **kw):
-    senha_hash = generate_password_hash("1234")
+    nome = os.environ.get('ADMIN_USERNAME')
+    email = os.environ.get('ADMIN_EMAIL')
+    senha = os.environ.get('ADMIN_PASSWORD')
+    senha_hash = generate_password_hash(senha)
     connection.execute(
         Usuario.__table__.insert(),
-        ({"nome": "Matheus Soares do Nascimento", "email": "matheus.soares10@aluno.ifce.edu.br", "senha": senha_hash, "data_nascimento": "2004-10-02"})
+        ({"nome": nome, "email": email, "senha": senha_hash, "data_nascimento": "2000-01-01"})
     )
 @event.listens_for(DiasFechados.__table__, "after_create")
 def insert_dias_fechados(target, connection, **kw):

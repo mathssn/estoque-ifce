@@ -6,7 +6,7 @@ from datetime import date, datetime
 
 from app.utils import login_required, role_required
 from app.models import *
-from app.empenho.models import Empenho, ItemEmpenho, Ata
+from app.empenho.models import Empenho, ItemEmpenho, Ata, ItemAta
 from app.database.db import get_session
 
 notas_fiscais_bp = Blueprint('notas_fiscais', __name__, template_folder='templates')
@@ -129,7 +129,7 @@ def cadastro_nota():
 
             itens_empenho = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho_id).all()
             for item in itens_empenho:
-                item_nf = ItemNF(nota_fiscal_id=nova_nota.id, produto_id=item.produto_id, quantidade=0, valor_unitario=item.valor_unitario)
+                item_nf = ItemNF(nota_fiscal_id=nova_nota.id, quantidade=0, item_empenho_id=item.id)
                 session_db.add(item_nf)
     except IntegrityError as e:
         msg = str(e.orig)
@@ -203,7 +203,8 @@ def nota_info(nota_id):
             if not empenho:
                 flash('Não foi possivel recuperar o empenho referente a nota')
                 return redirect(url_for('notas_fiscais.notas_lista'))
-            itens_empenho = {i.produto_id: i for i in session_db.query(ItemEmpenho).filter_by(empenho_id=empenho.id).all()}
+            itens_empenho = {i.id: i for i in session_db.query(ItemEmpenho).filter_by(empenho_id=empenho.id).all()}
+            itens_ata = {i.id: i for i in session_db.query(ItemAta).filter_by(ata_id=empenho.ata_id).all()}
 
             ata = session_db.query(Ata).filter_by(id=empenho.ata_id).first()
             if not ata:
@@ -212,11 +213,17 @@ def nota_info(nota_id):
 
             itens = session_db.query(ItemNF).filter_by(nota_fiscal_id=nota_id).all()
             for item in itens:
-                item_emp = itens_empenho.get(item.produto_id, None)
-                if item_emp and item_emp.quantidade_empenhada > 0:
-                    item.disponivel = True
-                else:
-                    item.disponivel = False
+                item.disponivel = False
+                item_emp = itens_empenho.get(item.item_empenho_id)
+                if item_emp:
+                    item_ata = itens_ata.get(item_emp.item_ata_id)
+                    if item_ata:
+                        item.valor_unitario = item_ata.valor_unitario
+                        item.produto_id = item_ata.produto_id
+                    
+                    if item_emp.quantidade_empenhada > 0:
+                        item.disponivel = True
+
             fornecedor = session_db.query(Fornecedor).filter_by(id=nota_fiscal.fornecedor_id).first()
             produtos = {p.id: p for p in session_db.query(Produto).all()}
     except:
@@ -254,7 +261,7 @@ def editar_item_nf(item_id):
                 return redirect(url_for('notas_fiscais.nota_info', nota_id=nf_id))
             
             nota_fiscal = session_db.query(NotaFiscal).filter_by(id=nf_id).first()
-            if not verificar_saldo_empenho(session_db, nota_fiscal.empenho_id, item.produto_id, qntd, nf_id):
+            if not verificar_saldo_empenho(session_db, nota_fiscal.empenho_id, item.item_empenho_id, qntd, nf_id):
                 flash('Esse valor ultrapassa a quantidade empenhada', 'danger')
                 return redirect(url_for('notas_fiscais.nota_info', nota_id=nf_id))
 
@@ -284,19 +291,19 @@ def validar_dados_nota(nota: NotaFiscal):
 
     return True
 
-def verificar_saldo_empenho(session_db: Session, empenho_id: int, produto_id: int, quantidade, nf_id):
+def verificar_saldo_empenho(session_db: Session, empenho_id: int, item_id: int, quantidade, nf_id):
     empenho = session_db.query(Empenho).filter_by(id=empenho_id).first()
     if not empenho:
         return False
     
-    item_empenho = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho_id).filter_by(produto_id=produto_id).first()
+    item_empenho = session_db.query(ItemEmpenho).filter_by(id=item_id).first()
     
     total = quantidade
     notas = session_db.query(NotaFiscal).filter_by(empenho_id=empenho_id).all()
     for nota in notas:
         if nota.id == nf_id:
             continue
-        item_ = session_db.query(ItemNF).filter_by(nota_fiscal_id=nota.id).filter_by(produto_id=produto_id).first()
+        item_ = session_db.query(ItemNF).filter_by(nota_fiscal_id=nota.id).filter_by(item_empenho_id=item_id).first()
         total += item_.quantidade
     
     if total > item_empenho.quantidade_empenhada:
