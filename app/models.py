@@ -1,6 +1,6 @@
 from app.database.base import Base, StatusEnum, Tipo
 from sqlalchemy import DECIMAL, Column, Integer, String, Date, Enum, ForeignKey, UniqueConstraint, Boolean
-
+import enum
 
 class Refeicao(Base):
     __tablename__ = "refeicao"

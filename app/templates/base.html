@@ -35,7 +35,7 @@
         <li class="nav-item">
           <a class="nav-link active" href="{{ url_for('main.estoque_menu') }}" style="color: white;">Estoque</a>
         </li>
-      {% if ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
+      {% if ['admin', 'nutricionista', 'financeiro', 'diretoria'] | check_intersection(session.get('roles')) %}
         <li class="nav-item">
           <a class="nav-link active" href="{{ url_for('main.atas_menu' ) }}" style="color: white;">Atas</a>
         </li>
