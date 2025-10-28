@@ -3,6 +3,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+import time
 
 from app.utils import login_required, role_required
 from app.empenho.models import Empenho, Ata, ItemAta, ItemEmpenho
@@ -83,6 +84,73 @@ def form_empenhos_lista():
     return redirect(url_for('empenhos.empenhos_lista'))
 
 
+@empenhos_bp.route('/extrato-empenhos')
+@login_required
+@role_required('admin', 'nutricionista', 'financeiro', 'diretoria')
+def extrato_empenhos():
+    itens_ata = {}
+    itens_empenho = {}
+
+    variables = {
+        'total_empenhado': 0,
+        'liquidado': 0,
+        'saldo_empenhos': 0
+    }
+    ano_atual = str(datetime.today().date().year)
+
+    try:
+        with get_session() as session_db:
+            empenhos = session_db.query(Empenho).filter_by(ano=ano_atual).order_by(Empenho.numero).all()
+            fornecedores = {f.id: f for f in session_db.query(Fornecedor).all()}
+            for empenho in empenhos:
+                empenho.valor_empenhado = 0
+                empenho.liquidado = 0
+                empenho.saldo = 0
+                itens_empenho_lista = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho.id).all()
+                for item_emp in itens_empenho_lista:
+                    somar_item_empenho = False
+                    if not itens_empenho.get(item_emp.id):
+                        somar_item_empenho = True
+                        item_empenho = session_db.query(ItemEmpenho).filter_by(id=item_emp.id).first()
+                        if item_empenho:
+                            itens_empenho[item_empenho.id] = item_empenho
+                    else:
+                        item_empenho = itens_empenho.get(item_emp.id)
+                    if not item_empenho:
+                        flash('Erro ao recuperar os itens dos empenhos', 'danger')
+                        raise Exception()
+                        
+                    if not itens_ata.get(item_empenho.item_ata_id):
+                        item_ata = session_db.query(ItemAta).filter_by(id=item_empenho.item_ata_id).first()
+                        if item_ata:
+                            itens_ata[item_ata.id] = item_ata
+                    else:
+                        item_ata = itens_ata.get(item_empenho.item_ata_id)
+                    if not item_ata:
+                        flash('Erro ao recuperar os itens das atas', 'danger')
+                        raise Exception()
+                    
+                    if somar_item_empenho:
+                        empenho.valor_empenhado += item_empenho.quantidade_empenhada * item_ata.valor_unitario
+                        variables['total_empenhado'] += item_empenho.quantidade_empenhada * item_ata.valor_unitario
+                nfs = session_db.query(NotaFiscal).filter_by(empenho_id=empenho.id).all()
+                for nf in nfs:
+                    itens_nf = session_db.query(ItemNF).filter_by(nota_fiscal_id=nf.id).all()
+                    for item_nf in itens_nf:
+                        item_empenho = itens_empenho.get(item_nf.item_empenho_id)
+                        item_ata = itens_ata.get(item_empenho.item_ata_id)
+                        variables['liquidado'] += item_nf.quantidade * item_ata.valor_unitario
+                        empenho.liquidado += item_nf.quantidade * item_ata.valor_unitario
+
+                empenho.saldo = empenho.valor_empenhado - empenho.liquidado
+    except Exception as e:
+        flash(f'Erro ao calcular o extrato dos empenhos', 'danger')
+        print(e)
+    
+    variables['saldo_empenhos'] = variables['total_empenhado'] - variables['liquidado']
+    return render_template('empenho/extrato_empenhos.html', variables=variables, ano_atual=ano_atual, empenhos=empenhos, fornecedores=fornecedores)
+    
+
 @empenhos_bp.route('/cadastro/empenho/<int:ata_id>', methods=['POST'])
 @login_required
 @role_required('admin', 'nutricionista', 'financeiro')
@@ -137,6 +205,7 @@ def cadastro_empenho(ata_id):
 @login_required
 @role_required('admin', 'nutricionista', 'financeiro')
 def editar_empenho(empenho_id):
+    origem = request.args.get('origem', 'ata')
     try:
         with get_session() as session_db:
             empenho = session_db.query(Empenho).filter_by(id=empenho_id).first()
@@ -163,7 +232,8 @@ def editar_empenho(empenho_id):
         flash(f'Falha ao editar empenho', 'danger')
     else:
         flash(f'Empenho editado com sucesso!', 'success')
-
+    if origem == 'empenhos':
+        return redirect(url_for('empenhos.empenhos_lista'))
     return redirect(url_for('atas.ata_info', ata_id=empenho.ata_id))
 
 
@@ -171,6 +241,7 @@ def editar_empenho(empenho_id):
 @login_required
 @role_required('admin', 'nutricionista', 'financeiro', 'diretoria')
 def empenho_info(empenho_id):
+    origem = request.args.get('origem', 'ata')
     with get_session() as session_db:
         empenho = session_db.query(Empenho).filter_by(id=empenho_id).first()
         if not empenho:
@@ -223,7 +294,7 @@ def empenho_info(empenho_id):
         item.valor_restante = (item.valor_unitario * item.saldo).quantize(Decimal('0.01'))
         total_restante += item.valor_restante
     
-    return render_template('empenho/empenho.html', empenho=empenho, itens=itens, produtos=produtos, total=total, fornecedor=fornecedor, notas_fiscais=notas_fiscais, notas_itens=notas_itens, total_restante=total_restante, ata=ata)
+    return render_template('empenho/empenho.html', empenho=empenho, itens=itens, produtos=produtos, total=total, fornecedor=fornecedor, notas_fiscais=notas_fiscais, notas_itens=notas_itens, total_restante=total_restante, ata=ata, origem=origem)
 
 
 @empenhos_bp.route('/editar/item-empenho/<int:item_id>', methods=['POST'])

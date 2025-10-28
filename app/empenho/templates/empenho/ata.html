@@ -78,7 +78,7 @@
                 <th scope="col">Cod.</th>
                 <th scope="col">Nome</th>
                 <th scope="col">Qntd. Máxima</th>
-                <th scope="col">Marcas</th>
+                <th scope="col">Marca</th>
                 <th scope="col">Valor Unitário</th>
                 <th scope="col">Valor Total</th>
                 <th scope="col">Ações</th>
@@ -102,8 +102,10 @@
                           <button type="submit" class="btn btn-danger">Excluir</button>
                         </form>
                       {% else %}
+                      <div style="display: flex; gap: 10px;">
                         <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
                         <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para excluir este item.')">Excluir</button>
+                      </div>
                       {% endif %}
                     </td>
                 </tr>

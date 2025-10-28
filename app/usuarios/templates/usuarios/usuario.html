@@ -8,22 +8,22 @@
     </h2>
   </div>
 
-  <div class="card shadow">
+  <div class="card shadow" style="border: 0px; padding: 15px; border-radius: 15px;">
     <div class="card-body">
       <div class="row mb-3">
         <div class="col-md-6">
-          <label class="form-label fw-semibold">Nome:</label>
+          <label class="form-label fw-semibold">Nome</label>
           <input class="form-control" disabled value="{{ usuario.nome }}">
         </div>
         <div class="col-md-6">
-          <label class="form-label fw-semibold">E-mail:</label>
+          <label class="form-label fw-semibold">E-mail</label>
           <input class="form-control" disabled value="{{ usuario.email }}">
         </div>
       </div>
 
       <div class="row mb-3">
         <div class="col-md-6">
-          <label class="form-label fw-semibold">Data de Nascimento:</label>
+          <label class="form-label fw-semibold">Data de Nascimento</label>
           <input class="form-control" disabled value="{{ usuario.data_nascimento | format_date }}">
         </div>
       </div>
@@ -31,7 +31,7 @@
       <!-- Campo de senha com botão de visibilidade -->
       <div class="row">
         <div class="col-md-6">
-          <label class="form-label fw-semibold">Senha:</label>
+          <label class="form-label fw-semibold">Senha</label>
           <div class="input-group"  style="width: 300px;">
             <input type="password" id="senha" class="form-control" value="********" disabled>
             <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalAlterarSenha">

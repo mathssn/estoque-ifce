@@ -10,6 +10,8 @@ from . import usuarios_bp
 
 @usuarios_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    if 'user_id' in session:
+        return redirect('/')
     if request.method == 'GET':
         return render_template('usuarios/login.html')
     elif request.method != 'POST':

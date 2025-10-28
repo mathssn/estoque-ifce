@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-4">
+  <div class="page-title mb-4">
+    <h2 class="fw-bold border-bottom pb-2">
+      Extrato dos empenhos {{ ano_atual }}
+    </h2>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div class="card shadow" style="border: 0px; padding: 15px; border-radius: 15px;">
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Total empenhado</label>
+          <input class="form-control" disabled value="{{ variables.get('total_empenhado', 0) | format_money }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Saldo dos empenhos</label>
+          <input class="form-control" disabled value="{{ variables.get('saldo_empenhos', 0) | format_money }}">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="container mt-5">
+<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+    <div class="card-body">
+    <div class="table-responsive">
+
+        <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Empenho</th>
+                <th scope="col">Fornecedor</th>
+                <th scope="col">Empenhado</th>
+                <th scope="col">Saldo</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+
+            {% for empenho in empenhos %}
+                <tr>
+                    <td scope="row">{{ empenho.numero | format_empenho(empenho.ano) }}</a></td>
+                    <td>{{ fornecedores.get(empenho.fornecedor_id).nome }}</td>
+                    <td>{{ empenho.valor_empenhado | format_money }}</td>
+                    <td>{{ empenho.saldo | format_money }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+</div>
+</div>
+
+
+
+{% endblock %}

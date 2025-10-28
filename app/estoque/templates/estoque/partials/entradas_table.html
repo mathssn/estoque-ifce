@@ -54,12 +54,16 @@
                     </form>
                   </div>
                   {% else %}
+                  <div style="display: flex; gap: 10px;">
                     <button class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
                     <button class="btn btn-secondary" onclick="alert('Você não tem permissão para excluir este item.')">Excluir</button>
+                  </div>
                   {% endif %}
                   {% else %}
+                  <div style="display: flex; gap: 10px;">
                     <button class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
                     <button class="btn btn-secondary" onclick="alert('Você não tem permissão para excluir este item.')">Excluir</button>
+                  </div>
                   {% endif %}
               </td>
           {% endfor %}

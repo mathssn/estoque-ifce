@@ -14,7 +14,7 @@ db = create_engine(f"mysql+mysqlconnector://{username}:{password}@localhost:3306
 with db.connect() as conn:
     conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {db_name}"))
 
-db = create_engine(f"mysql+mysqlconnector://{username}:{password}@localhost:3306/{db_name}", echo=True)
+db = create_engine(f"mysql+mysqlconnector://{username}:{password}@localhost:3306/{db_name}")
 Session = sessionmaker(bind=db, expire_on_commit=False)
 
 
