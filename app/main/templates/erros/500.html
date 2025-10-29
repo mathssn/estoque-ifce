@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-5">500 - Erro Interno do Servidor</h1>
+    <p>Desculpe, ocorreu um erro ao processar sua solicitação.</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary">Voltar para a página inicial</a>
+</div>
+{% endblock %}
