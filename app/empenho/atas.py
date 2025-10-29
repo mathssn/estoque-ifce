@@ -150,7 +150,7 @@ def ata_info(ata_id):
                 item.quantidade_empenhada = 0
             empenhos = session_db.query(Empenho).filter_by(ata_id=ata_id).order_by(Empenho.numero).all()
             fornecedor = session_db.query(Fornecedor).filter_by(id=ata.fornecedor_id).first()
-            produtos = {p.id: p for p in session_db.query(Produto).all()}
+            produtos = {p.id: p for p in session_db.query(Produto).filter_by(tipo=ata.tipo).all()}
             marcas = {m.id: m for m in session_db.query(Marca).order_by(Marca.nome).all()}
 
             empenho_itens = {}
