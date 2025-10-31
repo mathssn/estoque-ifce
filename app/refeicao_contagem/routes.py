@@ -14,7 +14,7 @@ from . import registro_refeicao_bp
 @login_required
 def registro_refeicao():
 
-    data = request.form.get('data')
+    data = request.values.get('data')
     if not data:
         data = date.today().isoformat()
 
