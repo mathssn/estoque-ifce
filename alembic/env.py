@@ -7,9 +7,19 @@ from alembic import context
 
 from app.database.base import Base
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+db_name = os.environ.get('DB_NAME')
+username = os.environ.get('DB_USERNAME')
+password = os.environ.get('DB_PASSWORD')
+
+SQLALCHEMY_DATABASE_URI = f"mysql+mysqlconnector://{username}:{password}@localhost:3306/{db_name}"
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URI)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
