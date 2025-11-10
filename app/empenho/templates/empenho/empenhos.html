@@ -51,9 +51,10 @@
         <table class="table table-hover">
         <thead>
             <tr>
-                <th scope="col">Número</th>
-                <th scope="col">Ano</th>
+                <th scope="col">Empenho</th>
                 <th scope="col">Fornecedor</th>
+                <th scope="col">Valor</th>
+                <th scope="col">Observação</th>
                 <th scope="col">Status</th>
                 <th scope="col">Ações</th>
             </tr>
@@ -64,13 +65,14 @@
             {% for empenho in empenhos %}
             {% if empenho.numero != 0 %}
                 <tr>
-                    <td scope="row"><a href="{{ url_for('empenhos.empenho_info', empenho_id=empenho.id, origem='empenhos') }}" style="text-decoration: none;">{{ empenho.numero }}</a></td>
-                    <td>{{ empenho.ano }}</td>
+                    <td scope="row"><a href="{{ url_for('empenhos.empenho_info', empenho_id=empenho.id, origem='empenhos') }}" style="text-decoration: none;">{{ empenho.numero | format_empenho(empenho.ano) }}</a></td>
                     <td>{{ fornecedores.get(empenho.fornecedor_id).nome }}</td>
+                    <td>{{ empenho.valor | format_money }}</td>
+                    <td>{{ empenho.observacao }}</td>
                     <td>{{ empenho.status.value | capitalize }}</td>
                     <td style="display: flex; gap: 10px;">
                         {% if ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles', [])) and atas.get(empenho.ata_id) and atas.get(empenho.ata_id).status.value == 'ativo' %}
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEmpenhoModal" onclick="fillEditForm('{{empenho.id}}', '{{empenho.numero}}', '{{empenho.ano}}', '{{empenho.fornecedor_id}}', '{{empenho.status.value}}')">Editar</button>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEmpenhoModal" onclick="fillEditForm('{{empenho.id}}', '{{empenho.numero}}', '{{empenho.ano}}', '{{empenho.fornecedor_id}}', '{{empenho.status.value}}', '{{empenho.observacao}}')">Editar</button>
                         {% else %}
                             <button class="btn btn-secondary">Editar</button>
                         {% endif %}
@@ -116,6 +118,11 @@
           </div>
 
           <div class="mb-3">
+                <label for="edit_observacao" class="form-label">Observação</label>
+                <input id="edit_observacao" name="edit_observacao" type="text" class="form-control">
+            </div>
+
+          <div class="mb-3">
             <label for="edit_status" class="form-label">Status</label>
             <select id="edit_status" name="edit_status" class="form-select" required>
               <option value="ativo">Ativo</option>
@@ -137,11 +144,12 @@
 </div>
 
 <script>
-    function fillEditForm(id, numero, ano, fornecedor_id, status) {
+    function fillEditForm(id, numero, ano, fornecedor_id, status, observacao) {
         document.getElementById("edit_numero").value = numero;
         document.getElementById("edit_ano").value = ano;
         document.getElementById("edit_fornecedor").value = fornecedor_id;
         document.getElementById("edit_status").value = status;
+        document.getElementById("edit_observacao").value = observacao;
 
         document.getElementById("editEmpenhoForm").action = "{{ url_for('empenhos.editar_empenho', empenho_id=0, origem='empenhos') }}".replace('0', id);
     }

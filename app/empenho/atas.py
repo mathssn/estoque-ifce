@@ -1,9 +1,11 @@
 from flask import Blueprint, flash, render_template, request, redirect, url_for, session
 from sqlalchemy.exc import IntegrityError, DataError
+from sqlalchemy import text
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
 from app.database.db import get_session
+from app.database.utils import call_procedure
 from app.empenho.models import Ata, Empenho, ItemAta, ItemEmpenho
 from app.estoque.models import Marca
 from app.models import Fornecedor, Produto, NotaFiscal, ItemNF
@@ -40,7 +42,7 @@ def listar_atas():
                 ano = str(datetime.today().date().year)
             
             atas = query.all()
-            fornecedores = {fornecedor.id: fornecedor for fornecedor in session_db.query(Fornecedor).all()}
+            fornecedores = {fornecedor.id: fornecedor for fornecedor in session_db.query(Fornecedor).order_by(Fornecedor.nome).all()}
 
     except:
         flash('Erro ao listar atas!', 'danger')
@@ -148,22 +150,41 @@ def ata_info(ata_id):
             itens = session_db.query(ItemAta).filter_by(ata_id=ata_id).order_by(ItemAta.produto_id).all()
             for item in itens:
                 item.quantidade_empenhada = 0
+                item.saldo = 0
+
             empenhos = session_db.query(Empenho).filter_by(ata_id=ata_id).order_by(Empenho.numero).all()
             fornecedor = session_db.query(Fornecedor).filter_by(id=ata.fornecedor_id).first()
             produtos = {p.id: p for p in session_db.query(Produto).filter_by(tipo=ata.tipo).all()}
             marcas = {m.id: m for m in session_db.query(Marca).order_by(Marca.nome).all()}
 
+            # Chama a procedure que retorna o saldo da ata(por item)
+            rows = call_procedure(session_db, 'SP_GetAtaSaldo', [ata_id])
+
+            # Atribui total_empenhado e saldo aos itens da ata
+            for row in rows:
+                con = False # con indica se a combinação de row-item já foi encontrada
+                for item in itens:
+                    if con:
+                        continue
+                    if item.id == row.get('item_ata_id'):
+                        item.quantidade_empenhada = row.get('total_empenhado', 0) 
+                        item.saldo = row.get('saldo', 0)
+                        con = True
+
+            # Chama a procedure que calcula o valor de cada empeho
+
             empenho_itens = {}
             for empenho in empenhos:
+                rows = call_procedure(session_db, 'SP_GetEmpenhoValor', [empenho.id])
+                for row in rows:
+                    if row.get('empenho_id') == empenho.id:
+                        empenho.valor = row.get('total')
+                        
                 itens_empenho = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho.id).all()
-                for it_empenho in itens_empenho:
-                    for it in itens:
-                        if it.id == it_empenho.item_ata_id:
-                            it.quantidade_empenhada += it_empenho.quantidade_empenhada
-
                 empenho_itens[empenho.id] = itens_empenho
-    except:
+    except Exception as e:
         flash('Não foi possivel recuperar a ata!', 'danger')
+        print(e)
         return redirect(url_for('atas.listar_atas'))
     
     total = 0
@@ -172,7 +193,6 @@ def ata_info(ata_id):
         item.total = (item.valor_unitario * item.quantidade_maxima).quantize(Decimal('0.01'))
         total += item.total
 
-        item.saldo = item.quantidade_maxima - item.quantidade_empenhada
         item.valor_restante = (item.valor_unitario * item.saldo).quantize(Decimal('0.01'))
         total_restante += item.valor_restante    
 
@@ -288,18 +308,9 @@ def excluir_item_ata(item_id):
             ata_id = item.ata_id
             
             session_db.delete(item)
-
-            empenhos = session_db.query(Empenho).filter_by(ata_id=item.ata_id).all()
-            for empenho in empenhos:
-                item_emp = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho.id).filter_by(produto_id=item.produto_id).first()
-                session_db.delete(item_emp)
-
-                notas_fiscais = session_db.query(NotaFiscal).filter_by(empenho_id=empenho.id).all()
-                for nota in notas_fiscais:
-                    item_nf = session_db.query(ItemNF).filter_by(nota_fiscal_id=nota.id).filter_by(produto_id=item.produto_id).first()
-                    session_db.delete(item_nf)
-    except:
+    except Exception as e:
         flash('Falha ao deletar item da ata', 'danger')
+        print(e)
     else:
         flash('Item deletado com sucesso', 'success')
     

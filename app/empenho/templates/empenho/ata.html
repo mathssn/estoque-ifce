@@ -138,8 +138,9 @@
         <table class="table table-hover">
         <thead>
             <tr>
-                <th scope="col">Número</th>
-                <th scope="col">Ano</th>
+                <th scope="col">Empenho</th>
+                <th scope="col">Valor</th>
+                <th scope="col">Observação</th>
                 <th scope="col">Status</th>
                 <th scope="col">Ações</th>
             </tr>
@@ -149,12 +150,13 @@
 
             {% for empenho in empenhos %}
                 <tr>
-                    <td><a href="{{ url_for('empenhos.empenho_info', empenho_id=empenho.id) }}" style="text-decoration: none;">{{ empenho.numero }}</a></td>
-                    <td>{{ empenho.ano }}</td>
+                    <td><a href="{{ url_for('empenhos.empenho_info', empenho_id=empenho.id) }}" style="text-decoration: none;">{{ empenho.numero | format_empenho(empenho.ano) }}</a></td>
+                    <td>{{ empenho.valor | format_money }}</td>
+                    <td>{{ empenho.observacao }}</td>
                     <td>{{ empenho.status.value | capitalize }}</td>
                     <td>
                       {% if ata.status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEmpenhoModal" onclick="fillEditEmpenhoForm('{{empenho.id}}', '{{empenho.numero}}', '{{empenho.ano}}', '{{empenho.status.value}}')">Editar</button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEmpenhoModal" onclick="fillEditEmpenhoForm('{{empenho.id}}', '{{empenho.numero}}', '{{empenho.ano}}', '{{empenho.status.value}}', '{{empenho.observacao}}')">Editar</button>
                       {% else %}
                         <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
                       {% endif %}
@@ -189,7 +191,7 @@
               <th scope="col">Valor Unitário</th>
               {% for empenho in empenhos %}
                 <th scope="col" class="col-empenho">
-                  <a href="#" style="color: red; text-decoration: none;">
+                  <a href="{{ url_for('empenhos.empenho_info', empenho_id=empenho.id) }}" style="color: red; text-decoration: none;">
                     {{ empenho.ano }}NE{{ empenho.numero }}
                   </a>
                 </th>
@@ -350,6 +352,11 @@
             <input id="ano" name="ano" type="number" class="form-control" required>
           </div>
 
+          <div class="mb-3">
+                <label for="observacao" class="form-label">Observação</label>
+                <input id="observacao" name="observacao" type="text" class="form-control">
+            </div>
+
           <input type="hidden" name="fornecedor_id" id="fornecedor_id" value="{{ ata.fornecedor_id }}">
 
         </div>
@@ -384,6 +391,11 @@
           </div>
 
           <div class="mb-3">
+                <label for="edit_observacao" class="form-label">Observação</label>
+                <input id="edit_observacao" name="edit_observacao" type="text" class="form-control">
+            </div>
+
+          <div class="mb-3">
             <label for="edit_status" class="form-label">Status</label>
             <select id="edit_status" name="edit_status" class="form-select" required>
               <option value="ativo">Ativo</option>
@@ -414,10 +426,11 @@
         document.getElementById("editItemAtaForm").action = "{{ url_for('atas.editar_item_ata', item_id=0) }}".replace('0', id);
     }
 
-    function fillEditEmpenhoForm(id, numero, ano, status) {
+    function fillEditEmpenhoForm(id, numero, ano, status, observacao) {
         document.getElementById("edit_numero").value = numero;
         document.getElementById("edit_ano").value = ano;
         document.getElementById("edit_status").value = status;
+        document.getElementById("edit_observacao").value = observacao;
 
         document.getElementById("editEmpenhoForm").action = "{{ url_for('empenhos.editar_empenho', empenho_id=0) }}".replace('0', id);
     }

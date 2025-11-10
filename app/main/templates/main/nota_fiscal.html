@@ -33,6 +33,16 @@
         <p class="form-control">{{ total | format_money }}</p>
       </div>
     </div>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Status</label>
+        {% if nota_fiscal.status.value == 'em_ateste' %}
+          <p class="form-control">Em Ateste</p>
+        {% else %}
+          <p class="form-control">{{ nota_fiscal.status.value | capitalize }}</p>
+        {% endif %}
+      </div>
+    </div>
     </form>
   </div>
 </div>

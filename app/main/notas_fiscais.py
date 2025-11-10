@@ -8,6 +8,7 @@ from app.utils import login_required, role_required
 from app.models import *
 from app.empenho.models import Empenho, ItemEmpenho, Ata, ItemAta
 from app.database.db import get_session
+from app.database.utils import call_procedure
 
 notas_fiscais_bp = Blueprint('notas_fiscais', __name__, template_folder='templates')
 
@@ -45,13 +46,20 @@ def notas_lista():
             total = query.count()
             notas = query.offset(offset).limit(p_page).all()
 
+            for nota in notas:
+                rows = call_procedure(session_db, 'SP_GetNFValor', [nota.id])
+                for row in rows:
+                    if row.get('nota_id') == nota.id:
+                        nota.valor = row.get('total', 0)
+
             empenhos = {e.id: e for e in session_db.query(Empenho).order_by(Empenho.ano).order_by(Empenho.numero).all()}
             fornecedores = {f.id: f for f in session_db.query(Fornecedor).order_by(Fornecedor.nome).all()}
             atas = {a.id: a for a in session_db.query(Ata).all()}
             
             total_pages = (total + p_page - 1) // p_page
-    except:
+    except Exception as e:
         flash('Erro ao recuperar notas fiscais', 'danger')
+        print(e)
         return redirect('/')
 
     return render_template('main/notas_fiscais.html', notas=notas, fornecedores=fornecedores, empenhos=empenhos, atas=atas, page=page, total_pages=total_pages, fornecedor=fornecedor, empenho=empenho, numero=numero)
@@ -102,12 +110,13 @@ def cadastro_nota():
         empenho_id = int(request.form.get('empenho_id', 0))
         origem = request.form.get('origem', '').strip()
         serie = int(request.form.get('serie', 0))
-        status = 'ativo'
+        status = request.form.get('status', '').strip()
+        observacao = request.form.get('observacao', '').strip()
     except (ValueError, TypeError):
         flash('Valores invalidos', 'danger')
         return redirect(url_for('notas_fiscais.notas_lista'))
 
-    nova_nota = NotaFiscal(numero=numero, data_emissao=data_emissao, fornecedor_id=fornecedor_id, empenho_id=empenho_id, serie=serie, status=status)
+    nova_nota = NotaFiscal(numero=numero, data_emissao=data_emissao, fornecedor_id=fornecedor_id, empenho_id=empenho_id, serie=serie, status=status, observacao=observacao)
 
     if not validar_dados_nota(nova_nota):
         flash('Insira dados válidos para a nota fiscal', 'danger')
@@ -137,8 +146,10 @@ def cadastro_nota():
             flash('Nota fiscal ja cadastrada para esse fornecedor!', 'danger')
         else:
             flash('Erro de integridade ao cadastrar a nota', 'danger')
+        return redirect(url_for('notas_fiscais.notas_lista'))
     except:
         flash(f'Erro ao cadastrar nota fiscal!', 'danger')
+        return redirect(url_for('notas_fiscais.notas_lista'))
     else:
         flash('Nota fiscal cadastrada com sucesso!', 'success')
 
@@ -151,11 +162,14 @@ def cadastro_nota():
 @login_required
 @role_required('admin', 'nutricionista', 'financeiro')
 def editar_nota(nota_id):
+    origem = request.values.get('origem')
+    empenho_id = None
     try:
         numero = int(request.form.get('edit_numero', 0))
         data_emissao = request.form.get('edit_data_emissao', 0).strip()
         serie = int(request.form.get('edit_serie', 0))
         status = request.form.get('edit_status', '').strip()
+        observacao = request.form.get('edit_observacao', '').strip()
     except (TypeError, ValueError) as e:
         flash('Insira valores válidos', 'danger')
         return redirect(url_for('notas_fiscais.notas_lista'))
@@ -171,6 +185,9 @@ def editar_nota(nota_id):
             nota.data_emissao = data_emissao
             nota.serie = serie
             nota.status = status
+            nota.observacao = observacao
+
+            empenho_id = nota.empenho_id
 
             if not validar_dados_nota(nota):
                 raise Exception('Insira dados válidos')
@@ -184,6 +201,8 @@ def editar_nota(nota_id):
         flash(f'Erro ao atualizar nota fiscal!', 'danger')
     else:
         flash('Nota fiscal atualizada com sucesso!', 'success')
+        if origem == 'empenho' and empenho_id:
+            return redirect(url_for('empenhos.empenho_info', empenho_id=empenho_id))
 
     return redirect(url_for('notas_fiscais.notas_lista'))
 

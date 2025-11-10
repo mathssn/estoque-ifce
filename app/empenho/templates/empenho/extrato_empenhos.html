@@ -27,39 +27,124 @@
   </div>
 </div>
 
-
 <div class="container mt-5">
-<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+  <div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
     <div class="card-body">
-    <div class="table-responsive">
-
-        <table class="table table-hover">
-        <thead>
+      <div class="table-responsive">
+        <table class="table table-hover" id="tabelaEmpenhos">
+          <thead>
             <tr>
-                <th scope="col">Empenho</th>
-                <th scope="col">Fornecedor</th>
-                <th scope="col">Empenhado</th>
-                <th scope="col">Saldo</th>
+              <th scope="col">
+                Empenho
+                <button class="btn btn-sm btn-link sort-btn" data-col="0" data-type="empenho">
+                  <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th scope="col">Fornecedor</th>
+              <th scope="col">
+                Empenhado
+                <button class="btn btn-sm btn-link sort-btn" data-col="2" data-type="money">
+                  <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
+              <th scope="col">
+                Saldo
+                <button class="btn btn-sm btn-link sort-btn" data-col="3" data-type="money">
+                  <i class="bi bi-arrow-down-up"></i>
+                </button>
+              </th>
             </tr>
-        </thead>
-        
-        <tbody>
+          </thead>
 
+          <tbody>
             {% for empenho in empenhos %}
-                <tr>
-                    <td scope="row">{{ empenho.numero | format_empenho(empenho.ano) }}</a></td>
-                    <td>{{ fornecedores.get(empenho.fornecedor_id).nome }}</td>
-                    <td>{{ empenho.valor_empenhado | format_money }}</td>
-                    <td>{{ empenho.saldo | format_money }}</td>
-                </tr>
+              <tr>
+                <td scope="row">{{ empenho.numero | format_empenho(empenho.ano) }}</td>
+                <td>{{ fornecedores.get(empenho.fornecedor_id).nome }}</td>
+                <td>{{ empenho.valor_empenhado | format_money }}</td>
+                <td>{{ empenho.saldo | format_money }}</td>
+              </tr>
             {% endfor %}
-        </tbody>
-    </table>
-</div>
-</div>
-</div>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const table = document.getElementById("tabelaEmpenhos");
+  const buttons = document.querySelectorAll(".sort-btn");
+
+  const formatToNumber = (valor) => {
+    return parseFloat(
+      valor.replace("R$", "")
+           .replace(/\./g, "")
+           .replace(",", ".")
+           .trim()
+    ) || 0;
+  };
+
+  const parseEmpenho = (texto) => {
+    // Tenta capturar o formato "2025NE000049"
+    const match = texto.match(/(\d{4})NE(\d+)/i);
+    if (match) {
+      return parseInt(match[1] + match[2]);
+    }
+    // Ou o formato "Empenho 49 de 2025"
+    const alt = texto.match(/Empenho\s*(\d+)\s*de\s*(\d{4})/i);
+    if (alt) {
+      return parseInt(alt[2] + alt[1].padStart(6, "0"));
+    }
+    return 0;
+  };
+
+  buttons.forEach((btn) => {
+    let asc = true;
+    const icon = btn.querySelector("i");
+
+    btn.addEventListener("click", () => {
+      const colIndex = parseInt(btn.getAttribute("data-col"));
+      const type = btn.getAttribute("data-type");
+      const tbody = table.querySelector("tbody");
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+
+      rows.sort((a, b) => {
+        const valA = a.children[colIndex].innerText.trim();
+        const valB = b.children[colIndex].innerText.trim();
+
+        let numA, numB;
+
+        if (type === "money") {
+          numA = formatToNumber(valA);
+          numB = formatToNumber(valB);
+        } else if (type === "empenho") {
+          numA = parseEmpenho(valA);
+          numB = parseEmpenho(valB);
+        } else {
+          numA = valA.localeCompare(valB);
+          numB = 0;
+        }
+
+        return asc ? numA - numB : numB - numA;
+      });
+
+      tbody.innerHTML = "";
+      rows.forEach((r) => tbody.appendChild(r));
+
+      // Atualiza o ícone
+      buttons.forEach((b) => {
+        const i = b.querySelector("i");
+        i.className = "bi bi-arrow-down-up"; // reseta todos
+      });
+      icon.className = asc ? "bi bi-caret-up-fill" : "bi bi-caret-down-fill";
+
+      asc = !asc;
+    });
+  });
+});
+</script>
 
 
 {% endblock %}

@@ -83,10 +83,11 @@ def validar_dados_fornecedor(fornecedor: Fornecedor):
 
     if '@' not in fornecedor.email or '.' not in fornecedor.email:
         return False
-    
+
     try:
         for n in fornecedor.telefone:
-            int(n)
+            if n not in ['-', '(', ')', ' ']:
+                int(n)
     except (TypeError, ValueError):
         return False
 

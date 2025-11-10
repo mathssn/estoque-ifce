@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from app.estoque.models import *
-from app.database.db import db
+from app.database.db import db, get_session_cursor
 
 def recalculate_exits_balance(data, saida: Saida, session_db: Session, update=False, delete=False):
     saldo = session_db.query(SaldoDiario).filter_by(data=data, produto_id=saida.produto_id).first()
@@ -182,3 +182,12 @@ def list_movementation_by_product(produto_id, limit, offset):
         )
         total = result.scalar()
     return movimentacoes, total
+
+
+def call_procedure(session_db: Session, procedure: str, parameters: list):
+    cursor = get_session_cursor(session_db, True)
+    cursor.callproc(procedure, parameters)
+    for result in cursor.stored_results():
+        rows = result.fetchall()
+    cursor.close()
+    return rows

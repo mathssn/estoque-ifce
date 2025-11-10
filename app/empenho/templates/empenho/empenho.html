@@ -48,6 +48,19 @@
 </div>
 </div>
 
+
+<ul class="nav nav-tabs justify-content-center" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="itens-tab" data-bs-toggle="tab" data-bs-target="#itens-tab-pane" type="button" role="tab" aria-controls="itens-tab-pane" aria-selected="true">Itens</button>
+  </li>
+  <li class="nav-item" role="presentation">
+      <button class="nav-link" id="nfs-tab" data-bs-toggle="tab" data-bs-target="#nfs-tab-pane" type="button" role="tab" aria-controls="nfs-tab-pane" aria-selected="false">Notas Fiscais</button>
+  </li>
+</ul>
+
+<div class="tab-content" id="myTabContent">
+  <div class="tab-pane fade show active" id="itens-tab-pane" role="tabpanel" aria-labelledby="itens-tab" tabindex="0">
+
 <div class="container mt-5">
 <div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
   <div class="card-body">
@@ -91,13 +104,59 @@
 </div>
 </div>
 
-{% if ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles', [])) and ata.status.value == 'ativo' and empenho.status.value == 'ativo' and total_restante > 0 %}
-<div style="display: flex; justify-content: center; margin-top: 25px;">
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroNFModal">
-        Cadastrar nova nota fiscal
-    </button>
+<div class="tab-pane fade" id="nfs-tab-pane" role="tabpanel" aria-labelledby="nfs-tab" tabindex="0">
+  {% if ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles', [])) and ata.status.value == 'ativo' and empenho.status.value == 'ativo' and total_restante > 0 %}
+  <div style="display: flex; justify-content: center; margin-top: 25px;">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroNFModal">
+          Cadastrar nova nota fiscal
+      </button>
+  </div>
+  {% endif %}
+
+  <div class="container mt-5">
+<div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
+  <div class="card-body">
+    <div class="table-responsive">
+
+        <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Número</th>
+                <th scope="col">Data de emissão</th>
+                <th scope="col">Valor</th>
+                <th scope="col">Observação</th>
+                <th scope="col">Status</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+
+            {% for nf in notas_fiscais %}
+                <tr>
+                    <td><a href="{{ url_for('notas_fiscais.nota_info', nota_id=nf.id, origem='empenho') }}" style="text-decoration: none;">{{ nf.numero }}</a></td>
+                    <td>{{ nf.data_emissao | format_date }}</td>
+                    <td>{{ nf.valor | format_money }}</td>
+                    <td>{{ nf.observacao }}</td>
+                    <td>{{ nf.status.value | capitalize }}</td>
+                    <td>
+                      {% if ata.status.value == 'ativo' and empenho.status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editNotaModal" onclick="fillEditNFForm('{{nf.id}}', '{{nf.numero}}', '{{nf.data_emissao}}', '{{nf.serie}}', '{{nf.status.value}}', '{{nf.observacao}}')">Editar</button>
+                      {% else %}
+                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
+                      {% endif %}
+                      </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-{% endif %}
+</div>
+</div>
+</div>
+</div>
+</div>
+
 
 <div class="container mt-5">
   <div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
@@ -115,12 +174,14 @@
               <th scope="col">Qntd. Empenhada</th>
               <th scope="col">Valor Unitário</th>
               {% for nota in notas_fiscais %}
+              {% if nota.status.value != 'cancelada' %}
                 <th scope="col" class="col-nota">
                   <a href="{{ url_for('notas_fiscais.nota_info', nota_id=nota.id, origem='empenho') }}" 
                      style="color: red; text-decoration: none;">
                      NF {{ nota.numero }}
                   </a>
                 </th>
+              {% endif %}
               {% endfor %}
               <th scope="col">Recebido</th>  
               <th scope="col">Saldo</th>  
@@ -138,11 +199,13 @@
                 <td>{{ item.valor_unitario | format_money }}</td>
 
                 {% for nota in notas_fiscais %}
-                  {% for it in notas_itens.get(nota.id) %}
-                    {% if it.produto_id == item.produto_id %}
-                      <td class="col-nota">{{ it.quantidade }}</td>
-                    {% endif %}
-                  {% endfor %}
+                  {% if nota.status.value != 'cancelada' %}
+                    {% for it in notas_itens.get(nota.id) %}
+                      {% if it.produto_id == item.produto_id %}
+                        <td class="col-nota">{{ it.quantidade }}</td>
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
                 {% endfor %}
 
                 <td>{{ item.recebido }}</td>
@@ -227,12 +290,77 @@
                 <label for="data_emissao" class="form-label">Data de Emissão</label>
                 <input id="data_emissao" name="data_emissao" type="date" class="form-control" required>
             </div>
+
+            <div class="mb-3">
+                <label for="observacao" class="form-label">Observação</label>
+                <input id="observacao" name="observacao" type="text" class="form-control">
+            </div>
+
+            <div class="mb-3">
+            <label for="status" class="form-label">Status</label>
+            <select id="status" name="status" class="form-select">
+              <option value="pendente">Pendente</option>
+              <option value="em_ateste">Em Ateste</option>
+              <option value="atestada">Atestada</option>
+              <option value="liquidada">Liquidada</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
             <button type="submit" class="btn btn-primary">Cadastrar</button>
         </form>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="editNotaModal" tabindex="-1" aria-labelledby="editNotaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="editNotaForm" method="POST">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editNotaModalLabel">Editar Nota Fiscal</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="edit_numero" class="form-label">Número</label>
+            <input id="edit_numero" name="edit_numero" type="text" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_data_emissao" class="form-label">Data de Emissão</label>
+            <input id="edit_data_emissao" name="edit_data_emissao" type="date" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_serie" class="form-label">Série</label>
+            <input id="edit_serie" name="edit_serie" type="number" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+                <label for="edit_observacao" class="form-label">Observação</label>
+                <input id="edit_observacao" name="edit_observacao" type="text" class="form-control">
+            </div>
+
+          <div class="mb-3">
+            <label for="edit_status" class="form-label">Status</label>
+            <select id="edit_status" name="edit_status" class="form-select">
+              <option value="pendente">Pendente</option>
+              <option value="em_ateste">Em Ateste</option>
+              <option value="atestada">Atestada</option>
+              <option value="liquidada">Liquidada</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -245,6 +373,17 @@
         document.getElementById("edit_valor_unitario").value = valor_unitario;
 
         document.getElementById("editItemEmpenhoForm").action = "{{ url_for('empenhos.editar_item_empenho', item_id=0) }}".replace('0', id);
+    }
+
+    function fillEditNFForm(id, numero, data_emissao, serie, status, observacao) {
+        document.getElementById("edit_numero").value = numero;
+        document.getElementById("edit_data_emissao").value = data_emissao;
+        document.getElementById("edit_serie").value = serie;
+        document.getElementById("edit_status").value = status;
+        document.getElementById("edit_observacao").value = observacao;
+
+        const formAction = "{{ url_for('notas_fiscais.editar_nota', nota_id=0, origem='empenho') }}".replace('0', id);
+        document.getElementById("editNotaForm").action = formAction;
     }
 
     const toggleNotasBtn = document.getElementById("toggleNotasBtn");

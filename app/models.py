@@ -36,6 +36,13 @@ class Fornecedor(Base):
     status = Column(Enum(StatusEnum), nullable=False, default=StatusEnum.ativo)
 
 
+class StatusNotaFiscalEnum(str, enum.Enum):
+    pendente = "pendente"
+    em_ateste = "em_ateste"
+    atestada = "atestada"
+    liquidada = "liquidada"
+    cancelada = "cancelada"
+
 class NotaFiscal(Base):
     __tablename__ = "nota_fiscal"
 
@@ -45,7 +52,8 @@ class NotaFiscal(Base):
     serie = Column(Integer, nullable=False)
     fornecedor_id = Column(Integer, ForeignKey("fornecedor.id"), nullable=False)
     empenho_id = Column(Integer, ForeignKey("empenho.id"), nullable=False)
-    status = Column(Enum(StatusEnum), nullable=False, default=StatusEnum.ativo)
+    status = Column(Enum(StatusNotaFiscalEnum), nullable=False, default=StatusEnum.ativo)
+    observacao = Column(String(500))
 
     __table_args__ = (
         UniqueConstraint('numero', 'fornecedor_id', 'serie', name='uix_numero_fornecedor_id_serie'),

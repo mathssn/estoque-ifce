@@ -3,13 +3,13 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
-import time
 
 from app.utils import login_required, role_required
 from app.empenho.models import Empenho, Ata, ItemAta, ItemEmpenho
 from app.database.base import StatusEnum
-from app.models import Produto, Fornecedor, NotaFiscal, ItemNF
 from app.database.db import get_session
+from app.database.utils import call_procedure
+from app.models import Produto, Fornecedor, NotaFiscal, ItemNF
 
 empenhos_bp = Blueprint('empenhos', __name__, template_folder='templates')
 
@@ -43,6 +43,12 @@ def empenhos_lista():
 
             total = query.count()
             empenhos = query.offset(offset).limit(p_page).all()
+
+            for empenho in empenhos:
+                rows = call_procedure(session_db, 'SP_GetEmpenhoValor', [empenho.id])
+                for row in rows:
+                    if row.get('empenho_id') == empenho.id:
+                        empenho.valor = row.get('total')
 
             fornecedores = {f.id: f for f in session_db.query(Fornecedor).order_by(Fornecedor.nome).all()}
             atas = {a.id: a for a in session_db.query(Ata).all()}
@@ -88,9 +94,6 @@ def form_empenhos_lista():
 @login_required
 @role_required('admin', 'nutricionista', 'financeiro', 'diretoria')
 def extrato_empenhos():
-    itens_ata = {}
-    itens_empenho = {}
-
     variables = {
         'total_empenhado': 0,
         'liquidado': 0,
@@ -100,49 +103,24 @@ def extrato_empenhos():
 
     try:
         with get_session() as session_db:
-            empenhos = session_db.query(Empenho).filter_by(ano=ano_atual).order_by(Empenho.numero).all()
+            # Calcula o saldo de cada empenho
+            rows = call_procedure(session_db, 'SP_GetEmpenhoSaldoPorAno', [ano_atual])
+            empenhos = session_db.query(Empenho).filter_by(ano=ano_atual).filter_by(status='ativo').order_by(Empenho.numero).all()
             fornecedores = {f.id: f for f in session_db.query(Fornecedor).all()}
-            for empenho in empenhos:
-                empenho.valor_empenhado = 0
-                empenho.liquidado = 0
-                empenho.saldo = 0
-                itens_empenho_lista = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho.id).all()
-                for item_emp in itens_empenho_lista:
-                    somar_item_empenho = False
-                    if not itens_empenho.get(item_emp.id):
-                        somar_item_empenho = True
-                        item_empenho = session_db.query(ItemEmpenho).filter_by(id=item_emp.id).first()
-                        if item_empenho:
-                            itens_empenho[item_empenho.id] = item_empenho
-                    else:
-                        item_empenho = itens_empenho.get(item_emp.id)
-                    if not item_empenho:
-                        flash('Erro ao recuperar os itens dos empenhos', 'danger')
-                        raise Exception()
-                        
-                    if not itens_ata.get(item_empenho.item_ata_id):
-                        item_ata = session_db.query(ItemAta).filter_by(id=item_empenho.item_ata_id).first()
-                        if item_ata:
-                            itens_ata[item_ata.id] = item_ata
-                    else:
-                        item_ata = itens_ata.get(item_empenho.item_ata_id)
-                    if not item_ata:
-                        flash('Erro ao recuperar os itens das atas', 'danger')
-                        raise Exception()
-                    
-                    if somar_item_empenho:
-                        empenho.valor_empenhado += item_empenho.quantidade_empenhada * item_ata.valor_unitario
-                        variables['total_empenhado'] += item_empenho.quantidade_empenhada * item_ata.valor_unitario
-                nfs = session_db.query(NotaFiscal).filter_by(empenho_id=empenho.id).all()
-                for nf in nfs:
-                    itens_nf = session_db.query(ItemNF).filter_by(nota_fiscal_id=nf.id).all()
-                    for item_nf in itens_nf:
-                        item_empenho = itens_empenho.get(item_nf.item_empenho_id)
-                        item_ata = itens_ata.get(item_empenho.item_ata_id)
-                        variables['liquidado'] += item_nf.quantidade * item_ata.valor_unitario
-                        empenho.liquidado += item_nf.quantidade * item_ata.valor_unitario
 
-                empenho.saldo = empenho.valor_empenhado - empenho.liquidado
+            # Atribui o valor empenhado, liquidado e o saldo a cada empenho
+            for empenho in empenhos:
+                for row in rows:
+                    if row.get('empenho_id') != empenho.id:
+                        continue
+                    empenho.valor_empenhado = row.get('total_empenhado', 0)
+                    empenho.liquidado = row.get('debitado', 0)
+                    empenho.saldo = row.get('saldo', 0)
+
+                    # Soma os valores aos totais
+                    variables['total_empenhado'] += empenho.valor_empenhado
+                    variables['liquidado'] += empenho.liquidado
+               
     except Exception as e:
         flash(f'Erro ao calcular o extrato dos empenhos', 'danger')
         print(e)
@@ -160,6 +138,7 @@ def cadastro_empenho(ata_id):
         ano = str(request.form.get('ano'))
         fornecedor_id = int(request.form.get('fornecedor_id'))
         status = StatusEnum.ativo
+        observacao = request.form.get('observacao', '').strip()
     except (TypeError, ValueError):
         flash('Dados inválidos. Por favor, verifique os campos e tente novamente.', 'danger')
         return redirect(url_for('atas.ata_info', ata_id=ata_id))
@@ -169,7 +148,8 @@ def cadastro_empenho(ata_id):
         ano=ano,
         fornecedor_id=fornecedor_id,
         ata_id=ata_id,
-        status=status
+        status=status,
+        observacao=observacao
     )
 
     if not validar_dados(novo_empenho):
@@ -217,6 +197,7 @@ def editar_empenho(empenho_id):
             empenho.numero = int(request.form.get('edit_numero'))
             empenho.ano = str(request.form.get('edit_ano'))
             empenho.status = request.form.get('edit_status')
+            empenho.observacao = request.form.get('edit_observacao', '').strip()
 
             # Validação
             if not validar_dados(empenho):
@@ -267,13 +248,17 @@ def empenho_info(empenho_id):
 
         produtos = {p.id: p for p in session_db.query(Produto).all()}
         fornecedor = session_db.query(Fornecedor).filter_by(id=empenho.fornecedor_id).first()
-        notas_fiscais = session_db.query(NotaFiscal).filter_by(empenho_id=empenho_id).filter_by(status='ativo').all()
+        notas_fiscais = session_db.query(NotaFiscal).filter_by(empenho_id=empenho_id).all()
         notas_itens = {}
         for nota in notas_fiscais:
-            if nota.status == 'inativo':
-                continue
-
             itens_nf = session_db.query(ItemNF).filter_by(nota_fiscal_id=nota.id).all()
+            notas_itens[nota.id] = itens_nf
+
+            rows = call_procedure(session_db, 'SP_GetNFValor', [nota.id])
+            for row in rows:
+                if row.get('nota_id') == nota.id:
+                    nota.valor = row.get('total', 0)
+
             for item_nf in itens_nf:
                 for it in itens:
                     if it.id != item_nf.item_empenho_id:
@@ -281,8 +266,8 @@ def empenho_info(empenho_id):
                     
                     item_nf.produto_id = it.produto_id
                     item_nf.valor_unitario = it.valor_unitario
-                    it.recebido += item_nf.quantidade
-            notas_itens[nota.id] = itens_nf
+                    if nota.status != 'cancelada':
+                        it.recebido += item_nf.quantidade
 
     total = 0
     total_restante = 0

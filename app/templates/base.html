@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estoque IFCE - Crato</title>
+    <title>Refeitorio IFCE - Crato</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -35,13 +35,14 @@
         <li class="nav-item">
           <a class="nav-link active" href="{{ url_for('main.estoque_menu') }}" style="color: white;">Estoque</a>
         </li>
-      {% if ['admin', 'nutricionista', 'financeiro', 'diretoria'] | check_intersection(session.get('roles')) %}
         <li class="nav-item">
           <a class="nav-link active" href="{{ url_for('main.atas_menu' ) }}" style="color: white;">Atas</a>
         </li>
-      {% endif %}
         <li class="nav-item">
           <a class="nav-link active" href="{{ url_for('main.registro_refeicao_menu') }}" style="color: white;">Registro de refeições</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="/sobre" style="color: white;">Sobre</a>
         </li>
       </ul>
 

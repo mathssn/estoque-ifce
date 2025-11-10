@@ -16,6 +16,11 @@ def index():
 
     return render_template('main/index.html')
 
+@main_bp.route('/sobre')
+@login_required
+def sobre():
+    return render_template('main/sobre.html')
+
 @main_bp.route('/estoque-menu')
 @login_required
 def estoque_menu():

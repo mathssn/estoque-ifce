@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session as S
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import os
@@ -27,3 +27,8 @@ def get_session():
         except:
             session.rollback()
             raise             
+
+def get_session_cursor(session_db: S, dictionary=False):
+    connection = session_db.connection()
+    cursor = connection.connection.cursor(dictionary=dictionary)
+    return cursor

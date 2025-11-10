@@ -29,6 +29,9 @@ def login():
             flash('Senha incorreta!', 'danger')
             return redirect('/login')
         elif cod == 0:
+            if user.status == 'inativo':
+                flash('Não foi possivel completar seu login', 'danger')
+                return redirect('/login')
             session['user_id'] = user.id
             session['nome'] = user.nome
 

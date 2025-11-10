@@ -87,6 +87,8 @@
           <th scope="col">Fornecedor</th>
           <th scope="col">Série</th>
           <th scope="col">Empenho</th>
+          <th scope="col">Valor</th>
+          <th scope="col">Observação</th>
           <th scope="col">Status</th>
           <th scope="col">Ações</th>
         </tr>
@@ -100,11 +102,17 @@
           <td>{{ fornecedores.get(nf.fornecedor_id).nome }}</td>
           <td>{{ nf.serie }}</td>
           <td>{{ empenhos.get(nf.empenho_id).numero | format_empenho(empenhos.get(nf.empenho_id).ano) }}</td>
-          <td>{{ nf.status.value | capitalize }}</td>
+          <td>{{ nf.valor | format_money }}</td>
+          <td>{{ nf.observacao }}</td>
+          {% if nf.status.value == 'em_ateste' %}
+            <td>Em Ateste</td>
+          {% else %}
+            <td>{{ nf.status.value | capitalize }}</td>
+          {% endif %}
           <td style="display: flex; gap: 10px;">
             {% if empenhos.get(nf.empenho_id).status.value == 'ativo' and atas.get(empenhos.get(nf.empenho_id).ata_id).status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles', [])) %}
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editNotaModal"
-              onclick="fillEditForm('{{ nf.id }}', '{{ nf.numero }}', '{{ nf.data_emissao }}', '{{ nf.empenho_id }}', '{{ nf.fornecedor_id }}', '{{ nf.serie }}', '{{ nf.status.value }}')">
+              onclick="fillEditForm('{{ nf.id }}', '{{ nf.numero }}', '{{ nf.data_emissao }}', '{{ nf.empenho_id }}', '{{ nf.fornecedor_id }}', '{{ nf.serie }}', '{{ nf.status.value }}', '{{ nf.observacao }}')">
               Editar
             </button>
             {% else %}
@@ -214,11 +222,18 @@
           </div>
 
           <div class="mb-3">
+                <label for="edit_observacao" class="form-label">Observação</label>
+                <input id="edit_observacao" name="edit_observacao" type="text" class="form-control">
+            </div>
+
+          <div class="mb-3">
             <label for="edit_status" class="form-label">Status</label>
             <select id="edit_status" name="edit_status" class="form-select">
-              {% for st in ['ativo', 'inativo'] %}
-              <option value="{{ st }}">{{ st | capitalize }}</option>
-              {% endfor %}
+              <option value="pendente">Pendente</option>
+              <option value="em_ateste">Em Ateste</option>
+              <option value="atestada">Atestada</option>
+              <option value="liquidada">Liquidada</option>
+              <option value="cancelada">Cancelada</option>
             </select>
           </div>
         </div>
@@ -232,13 +247,14 @@
 </div>
 
 <script>
-  function fillEditForm(id, numero, data_emissao, empenho_id, fornecedor_id, serie, status) {
+  function fillEditForm(id, numero, data_emissao, empenho_id, fornecedor_id, serie, status, observacao) {
     document.getElementById("edit_numero").value = numero;
     document.getElementById("edit_data_emissao").value = data_emissao;
     document.getElementById("edit_empenho_id").value = empenho_id;
     document.getElementById("edit_fornecedor_id").value = fornecedor_id;
     document.getElementById("edit_serie").value = serie;
     document.getElementById("edit_status").value = status;
+    document.getElementById("edit_observacao").value = observacao;
 
     const formAction = "{{ url_for('notas_fiscais.editar_nota', nota_id=0) }}".replace('0', id);
     document.getElementById("editNotaForm").action = formAction;

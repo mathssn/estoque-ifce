@@ -121,8 +121,7 @@
         <table class="table table-hover">
         <thead>
             <tr>
-                <th scope="col">Número</th>
-                <th scope="col">Ano</th>
+                <th scope="col">Ata</th>
                 <th scope="col">Fornecedor</th>
                 <th scope="col">Tipo</th>
                 <th scope="col">Status</th>
@@ -135,8 +134,7 @@
             {% for ata in atas %}
             {% if ata.numero != 0 %}
                 <tr>
-                    <td scope="row"><a href="{{ url_for('atas.ata_info', ata_id=ata.id) }}" style="text-decoration: none;">{{ ata.numero }}</a></td>
-                    <td>{{ ata.ano }}</td>
+                    <td scope="row"><a href="{{ url_for('atas.ata_info', ata_id=ata.id) }}" style="text-decoration: none;">{{ ata.numero }}/{{ ata.ano }}</a></td>
                     <td>{{ fornecedores.get(ata.fornecedor_id).nome }}</td>
                     <td>{{ ata.tipo.value | replace('_', ' ') | capitalize }}</td>
                     <td>{{ ata.status.value | capitalize }}</td>

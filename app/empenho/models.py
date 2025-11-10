@@ -41,6 +41,7 @@ class Empenho(Base):
     fornecedor_id = Column(Integer, ForeignKey("fornecedor.id"), nullable=False)
     ano = Column(String(4), nullable=False)
     status = Column(Enum(StatusEnum), nullable=False, default=StatusEnum.ativo)
+    observacao = Column(String(500))
 
     __table_args__ = (
         UniqueConstraint('numero', 'ano', name='uix_numero_ano'),
