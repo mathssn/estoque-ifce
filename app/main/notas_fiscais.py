@@ -407,7 +407,7 @@ def download_nf_file(nf_id):
                 name, ext = os.path.splitext(file)
                 if name == str(nota_fiscal.id):
                     full_path = os.path.join(download_path, file)
-                    return send_file(full_path, as_attachment=True, download_name=f'NF {nota_fiscal.numero}')
+                    return send_file(full_path, as_attachment=True, download_name=f'NF {nota_fiscal.numero}{ext}')
     except Exception as e:
         flash('Erro ao fazer download da nota!', 'danger')
         print(e)
