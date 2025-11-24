@@ -3,6 +3,13 @@
 {% block content %}
 
 
+<div>
+  <a href="{{ url_for('main.registro_refeicao_menu') }}" class="btn btn-secondary m-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+</div>
+
+
 <div class="container py-4">
   <div class="page-title mb-4">
     <h2 class="fw-bold border-bottom pb-2">
@@ -13,11 +20,10 @@
 
 
 <div class="container py-4">
-<form action="{{ url_for('registro_refeicao.registro_refeicao') }}" method="post">    
+<form action="{{ url_for('registro_refeicao.registro_refeicao') }}" id="formData" method="post">    
 <div class="card mb-3 shadow" style="border: 0px; border-radius: 15px;">
-  <div class="card-body d-flex justify-content-between align-items-center">
-        <input type="date" id="data" name="data" value="{{ data.isoformat() }}" class="form-control w-auto">
-        <button class="btn btn-primary" type="submit">Pesquisar</button>
+  <div class="card-body d-flex justify-content-between align-items-center" style="height: 75px;">
+        <input type="date" id="data" name="data" value="{{ data.isoformat() }}" class="form-control w-100 h-100">
     </div>
 </div>
 </form>
@@ -201,6 +207,12 @@
 
 
 <script>
+    const campoData = document.getElementById('data');
+
+    campoData.addEventListener('change', function() {
+        document.getElementById('formData').submit();
+    })
+
     function fillEditForm(id, refeicao_id, data, qntd_aluno, qntd_servidores, qntd_terceirizados, qntd_outros) {
         document.getElementById("edit_refeicao_id").value = refeicao_id;
         document.getElementById("edit_data").value = data;

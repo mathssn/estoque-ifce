@@ -49,6 +49,7 @@ def empenhos_lista():
                 for row in rows:
                     if row.get('empenho_id') == empenho.id:
                         empenho.valor = row.get('total')
+                        empenho.saldo = row.get('saldo')
 
             fornecedores = {f.id: f for f in session_db.query(Fornecedor).order_by(Fornecedor.nome).all()}
             atas = {a.id: a for a in session_db.query(Ata).all()}
@@ -324,6 +325,38 @@ def editar_item_empenho(item_id):
         flash('Item editado com sucesso!', 'success')
 
     return redirect(url_for('empenhos.empenho_info', empenho_id=empenho_id))
+
+
+@empenhos_bp.route('/editar/itens-empenho/<int:empenho_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'nutricionista', 'financeiro')
+def editar_itens_empenho(empenho_id):
+    origem = request.values.get('origem')
+    try:
+        with get_session() as session_db:
+            empenho = session_db.query(Empenho).filter_by(id=empenho_id).first()
+            if not empenho:
+                flash('Empenho não encontrado!', 'danger')
+                return redirect(url_for('atas.listar_atas'))
+            itens = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho_id).all()
+            for item in itens:
+                quantidade = request.form.get(f'item_{item.id}')
+                if quantidade:
+                    quantidade = int(quantidade)
+                    if not verificar_saldo_item_ata(session_db, empenho.ata_id, item.item_ata_id, quantidade, empenho_id):
+                        flash('Os valores informados ultrapassam o saldo da ata!', 'warning')
+                        raise Exception()
+                    else:
+                        item.quantidade_empenhada = quantidade
+
+    except Exception as e:
+        flash('Erro ao editar os itens!', 'danger')
+        print(e)
+
+    if origem == 'empenhos':
+        return redirect(url_for('empenhos.empenho_info', empenho_id=empenho_id, origem='empenhos'))
+    return redirect(url_for('empenhos.empenho_info', empenho_id=empenho_id))
+    
 
 def validar_dados(empenho: Empenho):
     if not empenho.numero or not empenho.ano or not empenho.ata_id or not empenho.fornecedor_id or not empenho.status:

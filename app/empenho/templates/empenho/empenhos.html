@@ -3,6 +3,12 @@
 {% block content %}
 
 
+<div>
+  <a href="{{ url_for('main.atas_menu') }}" class="btn btn-secondary m-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+</div>
+
 
 <div class="container py-4">
   <div class="page-title mb-4">
@@ -54,6 +60,7 @@
                 <th scope="col">Empenho</th>
                 <th scope="col">Fornecedor</th>
                 <th scope="col">Valor</th>
+                <th scope="col">Saldo</th>
                 <th scope="col">Observação</th>
                 <th scope="col">Status</th>
                 <th scope="col">Ações</th>
@@ -68,6 +75,7 @@
                     <td scope="row"><a href="{{ url_for('empenhos.empenho_info', empenho_id=empenho.id, origem='empenhos') }}" style="text-decoration: none;">{{ empenho.numero | format_empenho(empenho.ano) }}</a></td>
                     <td>{{ fornecedores.get(empenho.fornecedor_id).nome }}</td>
                     <td>{{ empenho.valor | format_money }}</td>
+                    <td>{{ empenho.saldo | format_money }}</td>
                     <td>{{ empenho.observacao }}</td>
                     <td>{{ empenho.status.value | capitalize }}</td>
                     <td style="display: flex; gap: 10px;">
@@ -86,6 +94,52 @@
 </div>
 </div>
 </div>
+
+
+{% if empenhos | length > 0 %}
+<nav aria-label="Navegação de páginas">
+  <ul class="pagination justify-content-center">
+
+    {% if page > 1 %}
+      <li class="page-item">
+        <form action="{{ url_for('empenhos.form_empenhos_lista') }}" method="post">
+          <input type="hidden" name="page" value="{{ page - 1 }}">
+          <input type="hidden" name="fornecedor_select" id="fornecedor_select" value="{{ fornecedor.id }}">
+          <input type="hidden" name="ano_input" id="numero_search" value="{{ ano }}">
+          <button class="page-link" type="submit">Anterior</button>
+        </form>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Anterior</span>
+      </li>
+    {% endif %}
+
+    <li class="page-item disabled">
+      <span class="page-link">
+        Página {{ page }} de {{ total_pages }}
+      </span>
+    </li>
+
+    {% if page < total_pages %}
+      <li class="page-item">
+        <form action="{{ url_for('empenhos.form_empenhos_lista') }}" method="post">
+          <input type="hidden" name="page" value="{{ page + 1 }}">
+          <input type="hidden" name="fornecedor_select" id="fornecedor_select" value="{{ fornecedor.id }}">
+          <input type="hidden" name="ano_input" id="numero_search" value="{{ ano }}">
+          <button class="page-link" type="submit">Próxima</button>
+        </form>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Próxima</span>
+      </li>
+    {% endif %}
+
+  </ul>
+</nav>
+{% endif %}
+
 
 
 <div class="modal fade" id="editEmpenhoModal" tabindex="-1" aria-labelledby="editItemEmpenhoLabel" aria-hidden="true">

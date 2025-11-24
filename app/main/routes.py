@@ -50,6 +50,10 @@ def estoque_menu():
     return render_template('main/estoque.html', dia=dia, produtos_zerados=produtos_zerados, baixo_estoque=baixo_estoque)
 
 
+@main_bp.app_errorhandler(401)
+def page_not_found(error):
+    return render_template('erros/401.html'), 401
+
 @main_bp.app_errorhandler(404)
 def page_not_found(error):
     return render_template('erros/404.html'), 404

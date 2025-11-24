@@ -1,8 +1,10 @@
-from flask import Blueprint, request, session, render_template, redirect, flash, url_for
+from flask import Blueprint, request, session, render_template, redirect, flash, url_for, current_app, send_file
 from decimal import Decimal
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from datetime import date, datetime
+
+import os
 
 from app.utils import login_required, role_required
 from app.models import *
@@ -217,6 +219,7 @@ def nota_info(nota_id):
             if not nota_fiscal:
                 flash('Nota fiscal não encontrada', 'danger')
                 return redirect(url_for('notas_fiscais.notas_lista'))
+            nota_fiscal.arquivo = False
 
             empenho = session_db.query(Empenho).filter_by(id=nota_fiscal.empenho_id).first()
             if not empenho:
@@ -245,7 +248,20 @@ def nota_info(nota_id):
 
             fornecedor = session_db.query(Fornecedor).filter_by(id=nota_fiscal.fornecedor_id).first()
             produtos = {p.id: p for p in session_db.query(Produto).all()}
-    except:
+
+            # Arquivo
+            ano = str(nota_fiscal.data_emissao.year)
+            fornecedor_id = str(nota_fiscal.fornecedor_id)
+            empenho_id = str(nota_fiscal.empenho_id)
+            try:
+                files = os.listdir(os.path.join(current_app.config['UPLOAD_FOLDER'], ano, fornecedor_id, empenho_id))
+                for file in files:
+                    name, ext = os.path.splitext(file)
+                    if name == str(nota_fiscal.id):
+                        nota_fiscal.arquivo = True
+            except:
+                pass
+    except Exception as e:
         flash('Falha ao recuperar nota fiscal', 'danger')
         return redirect(url_for('notas_fiscais.notas_lista'))
     
@@ -292,6 +308,113 @@ def editar_item_nf(item_id):
         flash('Item editado com sucesso!', 'success')
 
     return redirect(url_for('notas_fiscais.nota_info', nota_id=nf_id, origem='empenho'))
+
+
+@notas_fiscais_bp.route('/editar/itens-nf/<int:nf_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'nutricionista', 'financeiro')
+def editar_itens_nf(nf_id):
+    origem = request.values.get('origem')
+    try:
+        with get_session() as session_db:
+            nf = session_db.query(NotaFiscal).filter_by(id=nf_id).first()
+            if not nf:
+                flash('Nota fiscal não encontrada!', 'danger')
+                return redirect(url_for('notas_fiscais.notas_lista'))
+            itens = session_db.query(ItemNF).filter_by(nota_fiscal_id=nf_id).all()
+            for item in itens:
+                quantidade = request.form.get(f'item_{item.id}')
+                if quantidade:
+                    quantidade = int(quantidade)
+                    if not verificar_saldo_empenho(session_db, nf.empenho_id, item.item_empenho_id, quantidade, nf_id):
+                        flash('Os valores informados ultrapassam o saldo do empenho!', 'warning')
+                        raise Exception()
+                    else:
+                        item.quantidade = quantidade
+
+    except Exception as e:
+        flash('Erro ao editar os itens!', 'danger')
+        print(e)
+
+    if origem == 'empenho':
+        return redirect(url_for('notas_fiscais.nota_info', nota_id=nf_id, origem='empenho'))
+    return redirect(url_for('notas_fiscais.nota_info', nota_id=nf_id))
+    
+
+@notas_fiscais_bp.route('/upload/nf-file/<int:nf_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'nutricionista', 'financeiro')
+def upload_nf_file(nf_id):
+    file = request.files.get('nf_file')
+
+    if not file or file.filename == "":
+        flash('Selecione um arquivo', 'warning')
+        return redirect(url_for('notas_fiscais.nota_info', nota_id=nf_id))
+    
+    try:
+        with get_session() as session_db:
+            nota_fiscal = session_db.query(NotaFiscal).filter_by(id=nf_id).first()
+            if not nota_fiscal:
+                flash('Nota fiscal não encontrada', 'danger')
+                return redirect(url_for('notas_fiscais.notas_lista'))
+            
+            ano = str(nota_fiscal.data_emissao.year)
+            fornecedor_id = str(nota_fiscal.fornecedor_id)
+            empenho_id = str(nota_fiscal.empenho_id)
+
+            # Cria o caminho com o ano da nota, id do fornecedor e id do empenho
+            upload_path = os.path.join(current_app.config['UPLOAD_FOLDER'], ano, fornecedor_id, empenho_id)
+            os.makedirs(upload_path, exist_ok=True)
+
+            # Verifica se já existe um arquivo para a nota fiscal
+            files = os.listdir(os.path.join(current_app.config['UPLOAD_FOLDER'], ano, fornecedor_id, empenho_id))
+            for f in files:
+                name, ext = os.path.splitext(f)
+                if name == str(nota_fiscal.id):
+                    os.remove(os.path.join(upload_path, f))
+            
+            # O nome do arquivo será de acordo com o id da nota
+            _, ext = os.path.splitext(file.filename)
+            filepath = os.path.join(upload_path, str(nota_fiscal.id) + ext)
+            file.save(filepath)
+    except Exception as e:
+        flash('Erro ao fazer upload da nota!', 'danger')
+        print(e)
+
+
+    return redirect(url_for('notas_fiscais.nota_info', nota_id=nf_id))
+
+
+@notas_fiscais_bp.route('/download/nf-file/<int:nf_id>')
+@login_required
+@role_required('admin', 'nutricionista', 'financeiro', 'assistencia', 'diretoria')
+def download_nf_file(nf_id):    
+    try:
+        with get_session() as session_db:
+            nota_fiscal = session_db.query(NotaFiscal).filter_by(id=nf_id).first()
+            if not nota_fiscal:
+                flash('Nota fiscal não encontrada', 'danger')
+                return redirect(url_for('notas_fiscais.notas_lista'))
+            
+            ano = str(nota_fiscal.data_emissao.year)
+            fornecedor_id = str(nota_fiscal.fornecedor_id)
+            empenho_id = str(nota_fiscal.empenho_id)
+
+            # Cria o caminho com o ano da nota, id do fornecedor e id do empenho
+            download_path = os.path.join(current_app.config['UPLOAD_FOLDER'], ano, fornecedor_id, empenho_id)
+            files = os.listdir(download_path)
+            for file in files:
+                name, ext = os.path.splitext(file)
+                if name == str(nota_fiscal.id):
+                    full_path = os.path.join(download_path, file)
+                    return send_file(full_path, as_attachment=True, download_name=f'NF {nota_fiscal.numero}')
+    except Exception as e:
+        flash('Erro ao fazer download da nota!', 'danger')
+        print(e)
+
+    flash('Não existe arquivo para essa nota fiscal!', 'warning')
+    return redirect(url_for('notas_fiscais.nota_info', nota_id=nf_id))
+
 
 def validar_dados_nota(nota: NotaFiscal):
     if not nota.numero or not nota.data_emissao or not nota.fornecedor_id:

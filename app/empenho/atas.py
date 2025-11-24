@@ -1,7 +1,7 @@
 from flask import Blueprint, flash, render_template, request, redirect, url_for, session
 from sqlalchemy.exc import IntegrityError, DataError
 from sqlalchemy import text
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal, InvalidOperation
 
 from app.database.db import get_session
@@ -48,8 +48,8 @@ def listar_atas():
         flash('Erro ao listar atas!', 'danger')
         return redirect('/')
 
-
-    return render_template('empenho/atas.html', atas=atas, fornecedores=fornecedores, fornecedor=fornecedor, tipo=tipo, ano=ano)
+    today = date.today()
+    return render_template('empenho/atas.html', atas=atas, fornecedores=fornecedores, fornecedor=fornecedor, tipo=tipo, ano=ano, today=today)
 
 
 @atas_bp.route('/cadastro/ata', methods=['POST'])
@@ -61,12 +61,13 @@ def cadastro_ata():
         ano = int(request.form.get('ano', 0))
         fornecedor_id = int(request.form.get('fornecedor_id', None))
         tipo = request.form.get('tipo')
+        validade = request.form.get('validade')
         status = 'ativo' # Status padrão
     except (TypeError, ValueError):
         flash('Dados inválidos. Por favor, verifique os campos e tente novamente.', 'danger')
         return redirect(url_for('atas.listar_atas'))
 
-    nova_ata = Ata(numero=numero, ano=ano, fornecedor_id=fornecedor_id, tipo=tipo, status=status)
+    nova_ata = Ata(numero=numero, ano=ano, fornecedor_id=fornecedor_id, tipo=tipo, status=status, validade=validade)
     if not validar_dados(nova_ata):
         flash('Dados inválidos. Por favor, verifique os campos e tente novamente.', 'danger')
         return redirect(url_for('atas.listar_atas'))
@@ -108,6 +109,7 @@ def editar_ata(ata_id):
             ata.fornecedor_id = int(request.form.get('edit_fornecedor_id'))
             ata.tipo = request.form.get('edit_tipo')
             ata.status = request.form.get('edit_status')
+            ata.validade = request.form.get('edit_validade')
 
             if not validar_dados(ata):
                 raise Exception('Dados inválidos. Por favor, verifique os campos e tente novamente.')
@@ -179,6 +181,7 @@ def ata_info(ata_id):
                 for row in rows:
                     if row.get('empenho_id') == empenho.id:
                         empenho.valor = row.get('total')
+                        empenho.saldo = row.get('saldo')
                         
                 itens_empenho = session_db.query(ItemEmpenho).filter_by(empenho_id=empenho.id).all()
                 empenho_itens[empenho.id] = itens_empenho
@@ -194,9 +197,11 @@ def ata_info(ata_id):
         total += item.total
 
         item.valor_restante = (item.valor_unitario * item.saldo).quantize(Decimal('0.01'))
-        total_restante += item.valor_restante    
+        total_restante += item.valor_restante
 
-    return render_template('empenho/ata.html', ata=ata, itens=itens, produtos=produtos, fornecedor=fornecedor, total=total, empenhos=empenhos, empenho_itens=empenho_itens, total_restante=total_restante, marcas=marcas)
+    today = date.today()
+
+    return render_template('empenho/ata.html', ata=ata, itens=itens, produtos=produtos, fornecedor=fornecedor, total=total, empenhos=empenhos, empenho_itens=empenho_itens, total_restante=total_restante, marcas=marcas, today=today)
 
 @atas_bp.route('/cadastro/item-ata/<int:ata_id>', methods=['POST'])
 @login_required

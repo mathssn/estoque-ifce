@@ -1,5 +1,5 @@
 from app.database.base import Base, StatusEnum, Tipo
-from sqlalchemy import DECIMAL, Column, Integer, String, Enum, ForeignKey, UniqueConstraint
+from sqlalchemy import DECIMAL, Column, Integer, String, Enum, ForeignKey, UniqueConstraint, Date
 
 
 class Ata(Base):
@@ -11,6 +11,7 @@ class Ata(Base):
     fornecedor_id = Column(Integer, ForeignKey("fornecedor.id"), nullable=False)
     tipo = Column(Enum(Tipo), nullable=False)
     status = Column(Enum(StatusEnum), nullable=False, default=StatusEnum.ativo)
+    validade = Column(Date, nullable=False)
 
     __table_args__ = (
         UniqueConstraint('numero', 'ano', name='uix_numero_ano'),

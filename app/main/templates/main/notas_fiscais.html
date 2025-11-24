@@ -104,11 +104,9 @@
           <td>{{ empenhos.get(nf.empenho_id).numero | format_empenho(empenhos.get(nf.empenho_id).ano) }}</td>
           <td>{{ nf.valor | format_money }}</td>
           <td>{{ nf.observacao }}</td>
-          {% if nf.status.value == 'em_ateste' %}
-            <td>Em Ateste</td>
-          {% else %}
-            <td>{{ nf.status.value | capitalize }}</td>
-          {% endif %}
+          <td><span style="padding: 7px;" class="badge text-bg-{% if nf.status.value == 'pendente' %}warning{% elif nf.status.value == 'conferencia' %}primary{% elif nf.status.value == 'liquidacao' %}success{% elif nf.status.value == 'cancelada' %}danger{% endif %}">
+            {{ nf.status.value | capitalize }}
+          </span></td>
           <td style="display: flex; gap: 10px;">
             {% if empenhos.get(nf.empenho_id).status.value == 'ativo' and atas.get(empenhos.get(nf.empenho_id).ata_id).status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles', [])) %}
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editNotaModal"
@@ -230,9 +228,8 @@
             <label for="edit_status" class="form-label">Status</label>
             <select id="edit_status" name="edit_status" class="form-select">
               <option value="pendente">Pendente</option>
-              <option value="em_ateste">Em Ateste</option>
-              <option value="atestada">Atestada</option>
-              <option value="liquidada">Liquidada</option>
+              <option value="conferencia">Conferência</option>
+              <option value="liquidacao">Liquidação</option>
               <option value="cancelada">Cancelada</option>
             </select>
           </div>

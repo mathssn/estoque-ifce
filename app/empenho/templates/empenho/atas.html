@@ -40,6 +40,11 @@
                     <option value="nao_perecivel">Não Perecível</option>
                 </select>
             </div>
+
+            <div class="mb-3">
+                <label for="validade" class="form-label">Data de validade</label>
+                <input id="validade" name="validade" type="date" class="form-control" required>
+            </div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
@@ -125,6 +130,7 @@
                 <th scope="col">Fornecedor</th>
                 <th scope="col">Tipo</th>
                 <th scope="col">Status</th>
+                <th scope="col">Data de validade</th>
                 <th scope="col">Ações</th>
             </tr>
         </thead>
@@ -138,9 +144,10 @@
                     <td>{{ fornecedores.get(ata.fornecedor_id).nome }}</td>
                     <td>{{ ata.tipo.value | replace('_', ' ') | capitalize }}</td>
                     <td>{{ ata.status.value | capitalize }}</td>
+                    <td>{{ ata.validade | format_date }}</td>
                     <td style="display: flex; gap: 10px;">
-                        {% if ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editAtaModal" onclick="fillEditForm('{{ata.id}}', '{{ata.numero}}', '{{ata.ano}}', '{{ata.fornecedor_id}}', '{{ata.tipo.value}}', '{{ata.status.value}}')">Editar</button>
+                        {% if ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) and ata.validade > today %}
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editAtaModal" onclick="fillEditForm('{{ata.id}}', '{{ata.numero}}', '{{ata.ano}}', '{{ata.fornecedor_id}}', '{{ata.tipo.value}}', '{{ata.status.value}}', '{{ata.validade}}')">Editar</button>
                         {% else %}
                             <button class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
                         {% endif %}
@@ -201,6 +208,11 @@
                     {% endfor %}
                 </select>
             </div>
+
+            <div class="mb-3">
+                <label for="edit_validade" class="form-label">Data de validade</label>
+                <input id="edit_validade" name="edit_validade" type="date" class="form-control" required>
+            </div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
@@ -212,12 +224,13 @@
 </div>
 
 <script>
-    function fillEditForm(id, numero, ano, fornecedor_id, tipo, status) {
+    function fillEditForm(id, numero, ano, fornecedor_id, tipo, status, validade) {
         document.getElementById("edit_numero").value = numero;
         document.getElementById("edit_ano").value = ano;
         document.getElementById("edit_fornecedor_id").value = fornecedor_id;
         document.getElementById("edit_tipo").value = tipo;
         document.getElementById("edit_status").value = status;
+        document.getElementById("edit_validade").value = validade;
 
         document.getElementById("editAtaForm").action = "{{ url_for('atas.editar_ata', ata_id=0) }}".replace('0', id);
     }

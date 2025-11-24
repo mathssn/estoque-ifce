@@ -1,6 +1,7 @@
 from flask import Flask
-import os
 from dotenv import load_dotenv
+import os
+import smtplib
 
 from app.estoque import blueprints as estoque_blueprints
 from app.main import blueprints as main_blueprints
@@ -19,6 +20,11 @@ def create_app():
     load_dotenv()
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = os.environ.get('mail_username')
+    app.config['MAIL_PASSWORD'] = os.environ.get('mail_password')
 
     app.register_blueprint(usuarios_bp)
     app.register_blueprint(registro_refeicao_bp)

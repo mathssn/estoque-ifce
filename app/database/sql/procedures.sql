@@ -108,19 +108,54 @@ END$$
 CREATE PROCEDURE SP_GetEmpenhoValor(
     IN e_id INT
 )
-
 BEGIN
     SELECT
         e.id AS empenho_id,
+
+        -- TOTAL EMPENHADO
         COALESCE(
-            (SUM(ie.quantidade_empenhada * ia.valor_unitario)),
+            (SELECT SUM(ie.quantidade_empenhada * ia.valor_unitario)
+             FROM item_empenho ie
+             JOIN item_ata ia ON ia.id = ie.item_ata_id
+             WHERE ie.empenho_id = e.id),
             0
-        ) as total
+        ) AS total,
+
+        -- TOTAL DEBITADO
+        COALESCE(
+            (SELECT SUM(inf.quantidade * ia.valor_unitario)
+             FROM item_empenho ie
+             JOIN item_ata ia ON ia.id = ie.item_ata_id
+             JOIN item_nf inf ON inf.item_empenho_id = ie.id
+             JOIN nota_fiscal nf ON nf.id = inf.nota_fiscal_id
+             WHERE ie.empenho_id = e.id
+               AND nf.status <> 'cancelada'),
+            0
+        ) AS debitado,
+
+        -- SALDO
+        (
+            COALESCE(
+                (SELECT SUM(ie.quantidade_empenhada * ia.valor_unitario)
+                 FROM item_empenho ie
+                 JOIN item_ata ia ON ia.id = ie.item_ata_id
+                 WHERE ie.empenho_id = e.id),
+                0
+            )
+            -
+            COALESCE(
+                (SELECT SUM(inf.quantidade * ia.valor_unitario)
+                 FROM item_empenho ie
+                 JOIN item_ata ia ON ia.id = ie.item_ata_id
+                 JOIN item_nf inf ON inf.item_empenho_id = ie.id
+                 JOIN nota_fiscal nf ON nf.id = inf.nota_fiscal_id
+                 WHERE ie.empenho_id = e.id
+                   AND nf.status <> 'cancelada'),
+                0
+            )
+        ) AS saldo
     FROM empenho e
-    LEFT JOIN item_empenho ie ON ie.empenho_id = e.id
-    LEFT JOIN item_ata ia ON ia.id = ie.item_ata_id
-    WHERE e.id = e_id
-    GROUP BY e.id;
+    WHERE e.id = e_id;
 END$$
 
 DELIMITER ;

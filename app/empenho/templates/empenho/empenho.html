@@ -64,6 +64,9 @@
 <div class="container mt-5">
 <div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
   <div class="card-body">
+
+    <button id="EnableEditBtn" class="btn btn-primary mb-3">Editar</button>
+
     <div class="table-responsive">
 
         <table class="table table-hover">
@@ -79,12 +82,14 @@
         </thead>
         
         <tbody>
-
+            <form id="formEditQntds" action="{{ url_for('empenhos.editar_itens_empenho', empenho_id=empenho.id, origem=origem) }}" method="POST">
             {% for item in itens %}
                 <tr>
                     <td>{{ produtos.get(item.produto_id).codigo }}</td>
                     <td>{{ produtos.get(item.produto_id).nome }}</td>
-                    <td>{{ item.quantidade_empenhada }}</td>
+                    <td>
+                      <input type="number" name="item_{{ item.id }}" value="{{ item.quantidade_empenhada }}" class="form-control quantidade-input" disabled>
+                    </td>
                     <td>{{ item.valor_unitario | format_money }}</td>
                     <td>{{ item.total | format_money }}</td>
                     <td style="display: flex; gap: 10px;">
@@ -96,9 +101,11 @@
                     </td>
                 </tr>
             {% endfor %}
+            </form>
         </tbody>
     </table>
 </div>
+    <button id="SaveAllBtn" class="btn btn-primary mb-3" disabled>Salvar alterações</button>
 </div>
 </div>
 </div>
@@ -138,14 +145,16 @@
                     <td>{{ nf.data_emissao | format_date }}</td>
                     <td>{{ nf.valor | format_money }}</td>
                     <td>{{ nf.observacao }}</td>
-                    <td>{{ nf.status.value | capitalize }}</td>
+                    <td><span style="padding: 7px;" class="badge text-bg-{% if nf.status.value == 'pendente' %}warning{% elif nf.status.value == 'conferencia' %}primary{% elif nf.status.value == 'liquidacao' %}success{% elif nf.status.value == 'cancelada' %}danger{% endif %}">
+                      {{ nf.status.value | capitalize }}
+                    </span></td>
                     <td>
-                      {% if ata.status.value == 'ativo' and empenho.status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editNotaModal" onclick="fillEditNFForm('{{nf.id}}', '{{nf.numero}}', '{{nf.data_emissao}}', '{{nf.serie}}', '{{nf.status.value}}', '{{nf.observacao}}')">Editar</button>
-                      {% else %}
-                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
-                      {% endif %}
-                      </td>
+                    {% if ata.status.value == 'ativo' and empenho.status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) %}
+                      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editNotaModal" onclick="fillEditNFForm('{{nf.id}}', '{{nf.numero}}', '{{nf.data_emissao}}', '{{nf.serie}}', '{{nf.status.value}}', '{{nf.observacao}}')">Editar</button>
+                    {% else %}
+                      <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
+                    {% endif %}
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -300,9 +309,8 @@
             <label for="status" class="form-label">Status</label>
             <select id="status" name="status" class="form-select">
               <option value="pendente">Pendente</option>
-              <option value="em_ateste">Em Ateste</option>
-              <option value="atestada">Atestada</option>
-              <option value="liquidada">Liquidada</option>
+              <option value="conferencia">Conferência</option>
+              <option value="liquidacao">Liquidação</option>
               <option value="cancelada">Cancelada</option>
             </select>
           </div>
@@ -349,9 +357,8 @@
             <label for="edit_status" class="form-label">Status</label>
             <select id="edit_status" name="edit_status" class="form-select">
               <option value="pendente">Pendente</option>
-              <option value="em_ateste">Em Ateste</option>
-              <option value="atestada">Atestada</option>
-              <option value="liquidada">Liquidada</option>
+              <option value="conferencia">Conferência</option>
+              <option value="liquidacao">Liquidação</option>
               <option value="cancelada">Cancelada</option>
             </select>
           </div>
@@ -412,6 +419,20 @@
     const input = document.getElementById('numero');
     input.focus();
   });
+
+  document.getElementById("EnableEditBtn").addEventListener("click", function() {
+    // Habilita todos inputs
+    document.querySelectorAll(".quantidade-input").forEach(i => {
+        i.disabled = false;
+    });
+
+    document.getElementById("SaveAllBtn").disabled = false;
+    this.disabled = true;
+});
+
+  document.getElementById("SaveAllBtn").addEventListener("click", function() {
+    document.getElementById("formEditQntds").submit();
+});
 </script>
 
 {% endblock %}

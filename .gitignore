@@ -1,4 +1,5 @@
 venv/
+uploads/
 .vscode/
 .env
 __pycache__/

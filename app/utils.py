@@ -19,8 +19,7 @@ def role_required(*roles_permitidos):
         def wrapper(*args, **kwargs):
             roles_user = session.get('roles', [])
             if not any(role in roles_user for role in roles_permitidos):
-                flash('Permissão negada', 'warning')
-                return redirect(url_for('main.index'))
+                abort(401)
                 
             return f(*args, **kwargs)
         return wrapper

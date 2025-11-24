@@ -38,9 +38,8 @@ class Fornecedor(Base):
 
 class StatusNotaFiscalEnum(str, enum.Enum):
     pendente = "pendente"
-    em_ateste = "em_ateste"
-    atestada = "atestada"
-    liquidada = "liquidada"
+    conferencia = "conferencia"
+    liquidacao = "liquidacao"
     cancelada = "cancelada"
 
 class NotaFiscal(Base):

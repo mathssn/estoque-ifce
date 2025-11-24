@@ -20,7 +20,7 @@
   </div>
 
 
-<div class="card shadow" style="border: 0px;">
+<div class="card shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
   <div class="card-body">
     <form>
     <div class="row mb-3">
@@ -42,16 +42,87 @@
           <p class="form-control">{{ nota_fiscal.status.value | capitalize }}</p>
         {% endif %}
       </div>
+      <div class="col-md-6">  
+        <label class="form-label fw-semibold">Data de emissão</label>
+        <p class="form-control">{{ nota_fiscal.data_emissao | format_date }}</p>
+      </div>
     </div>
+    <div class="row mb-3 w-100" style="margin-left: 1px;">
+      <label class="form-label fw-semibold">Observação</label>
+      <textarea class="form-control" style="min-height: 120px;" readonly>{{ nota_fiscal.observacao }}</textarea>
+      </div>
     </form>
   </div>
 </div>
 </div>
 
 
+<div class="container py-4">
+
+    <div class="card shadow border-0" style="border: 0px; padding: 30px; border-radius: 15px;">
+
+        <div class="card-body">
+
+            {# Indicativo de arquivo existente #}
+            {% if nota_fiscal.arquivo %}
+                <div class="alert alert-info d-flex align-items-center" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    Já existe um arquivo enviado para esta nota fiscal.
+                </div>
+            {% endif %}
+
+            <form action="{{ url_for('notas_fiscais.upload_nf_file', nf_id=nota_fiscal.id) }}" 
+                  method="POST" enctype="multipart/form-data" class="mb-4">
+
+                <label class="form-label fw-semibold">
+                    {% if nota_fiscal.arquivo %}
+                        Substituir arquivo
+                    {% else %}
+                        Enviar arquivo
+                    {% endif %}
+                </label>
+
+                <div class="input-group">
+                    <input type="file" class="form-control" name="nf_file" required>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload"></i>
+                        {% if nota_fiscal.arquivo %}
+                            Substituir
+                        {% else %}
+                            Enviar
+                        {% endif %}
+                    </button>
+                </div>
+
+            </form>
+
+            <hr>
+
+            {# Botão de download só aparece se existir arquivo #}
+            {% if nota_fiscal.arquivo %}
+                <a href="{{ url_for('notas_fiscais.download_nf_file', nf_id=nota_fiscal.id) }}" 
+                   class="btn btn-outline-primary w-100">
+                    <i class="bi bi-download"></i> Fazer download do arquivo enviado
+                </a>
+            {% else %}
+                <button class="btn btn-outline-secondary w-100" disabled>
+                    Nenhum arquivo disponível para download
+                </button>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+
+
 <div class="container mt-5">
 <div class="card mb-3 shadow" style="border: 0px; padding: 30px; border-radius: 15px;">
   <div class="card-body">
+
+    <button id="EnableEditBtn" class="btn btn-primary mb-3">Editar</button>
+
     <div class="table-responsive">
 
         <table class="table table-hover">
@@ -67,13 +138,15 @@
         </thead>
         
         <tbody>
-
+            <form id="formEditQntds" action="{{ url_for('notas_fiscais.editar_itens_nf', nf_id=nota_fiscal.id, origem=origem) }}" method="POST">
             {% for item in itens %}
               {% if item.disponivel == True %}
                 <tr>
                     <td>{{ produtos.get(item.produto_id).codigo }}</td>
                     <td>{{ produtos.get(item.produto_id).nome }}</td>
-                    <td>{{ item.quantidade }}</td>
+                    <td>
+                      <input type="number" name="item_{{ item.id }}" value="{{ item.quantidade }}" class="form-control quantidade-input" disabled>
+                    </td>
                     <td>{{ item.valor_unitario | format_money }}</td>
                     <td>{{ item.total | format_money }}</td>
                     <td style="display: flex; gap: 10px;">
@@ -86,9 +159,11 @@
                 </tr>
               {% endif %}
             {% endfor %}
+            </form>
         </tbody>
     </table>
 </div>
+    <button id="SaveAllBtn" class="btn btn-primary mb-3" disabled>Salvar alterações</button>
 </div>
 </div>
 </div>
@@ -150,6 +225,20 @@
     const input = document.getElementById('edit_quantidade');
     input.focus();
   });
+
+  document.getElementById("EnableEditBtn").addEventListener("click", function() {
+    // Habilita todos inputs
+    document.querySelectorAll(".quantidade-input").forEach(i => {
+        i.disabled = false;
+    });
+
+    document.getElementById("SaveAllBtn").disabled = false;
+    this.disabled = true;
+});
+
+  document.getElementById("SaveAllBtn").addEventListener("click", function() {
+    document.getElementById("formEditQntds").submit();
+});
 </script>
 
 {% endblock %}

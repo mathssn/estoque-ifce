@@ -14,10 +14,30 @@
         <label for="password" class="form-label">Senha</label>
         <input type="password" class="form-control" id="password" name="password" required>
       </div>
+      <a href="#" onclick="validateForgotPassword(event);">Esqueceu a senha?</a>
       <button type="submit" class="btn btn-primary w-100">Entrar</button>
     </form>
   </div>
 </div>
+
+<form id="forgot-form" action="{{ url_for('usuarios.forgot_password') }}" method="POST">
+  <input type="hidden" name="email" id="forgot-email">
+</form>
  
+<script>
+  function validateForgotPassword(event) {
+    event.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    if (!email) {
+      alert('Por favor, insira seu email para recuperar a senha.');
+      return;
+    }
+
+    console.log(email)
+    
+    document.getElementById('forgot-email').value = email;
+    document.getElementById('forgot-form').submit();
+  }
+</script>
 
 {% endblock %}
