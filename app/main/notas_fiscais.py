@@ -18,7 +18,7 @@ notas_fiscais_bp = Blueprint('notas_fiscais', __name__, template_folder='templat
 @login_required
 def notas_lista():
     page = request.args.get('page', default=1, type=int)
-    p_page = 10
+    p_page = 20
     offset = (page - 1) * p_page
 
     numero = session.pop('numero', None)

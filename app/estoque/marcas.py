@@ -12,7 +12,7 @@ marcas_bp = Blueprint('marcas', __name__, template_folder='templates')
 @login_required
 def marcas_lista():
     page = request.args.get('page', default=1, type=int)
-    p_page = 10
+    p_page = 20
     offset = (page - 1) * p_page
 
     try:

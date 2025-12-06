@@ -17,8 +17,8 @@ empenhos_bp = Blueprint('empenhos', __name__, template_folder='templates')
 @login_required
 @role_required('admin', 'nutricionista', 'financeiro', 'diretoria')
 def empenhos_lista():
-    page = request.args.get('page', default=1, type=int)
-    p_page = 10
+    page = session.pop('page', 1)
+    p_page = 20
     offset = (page - 1) * p_page
 
     fornecedor_id = session.pop('fornecedor_id', None)
@@ -68,6 +68,7 @@ def empenhos_lista():
 def form_empenhos_lista():
     fornecedor_id = request.form.get('fornecedor_select')
     ano = request.form.get('ano_input', '')
+    page = request.form.get('page', '')
 
     if fornecedor_id is None or ano is None:
         flash('Informe valores válidos', 'danger')
@@ -82,12 +83,17 @@ def form_empenhos_lista():
             a = int(ano)
         else:
             a = 0
+        if page == '':
+            page = 1
+        else:
+            page = int(page)
     except:
         flash('Informe valores válidos', 'danger')
         return redirect(url_for('main.atas_menu'))
     
     session['fornecedor_id'] = int(f_id)
     session['ano'] = int(a)
+    session['page'] = page
     return redirect(url_for('empenhos.empenhos_lista'))
 
 

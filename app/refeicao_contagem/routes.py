@@ -16,7 +16,13 @@ def registro_refeicao():
 
     data = request.values.get('data')
     if not data:
-        data = date.today().isoformat()
+        data = date.today()
+    else:
+        data = datetime.strptime(data, "%Y-%m-%d").date()
+
+    dias_semana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo']
+    dia_semana = dias_semana[data.weekday()]
+    data = data.isoformat()
 
     refeicoes_cadastradas = []
     total_dia = 0
@@ -46,7 +52,7 @@ def registro_refeicao():
         return redirect('/')
     
     data = datetime.strptime(data, '%Y-%m-%d').date()
-    return render_template('refeicao_contagem/refeicao_contagem.html', registros=registros, data=data, refeicoes_cadastradas=refeicoes_cadastradas, refeicoes=refeicoes, total_dia=total_dia, qntd_p_publico=qntd_p_publico)
+    return render_template('refeicao_contagem/refeicao_contagem.html', registros=registros, data=data, refeicoes_cadastradas=refeicoes_cadastradas, refeicoes=refeicoes, total_dia=total_dia, qntd_p_publico=qntd_p_publico, dia_semana=dia_semana)
 
 
 @registro_refeicao_bp.route('/cadastro/registro-refeicao/', methods=['POST'])

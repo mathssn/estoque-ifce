@@ -18,32 +18,41 @@
   </div>
 </div>
 
-
 <div class="container py-4">
 
-<div class="card mb-3 shadow" style="border: 0px; border-radius: 15px;">
-    <div class="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-      <form id="formData" action="{{ url_for('estoque.movimentacoes_diarias') }}" class="d-flex align-items-center gap-2" method="post">
-        <input type="date" id="date" name="date" value="{{ data }}" class="form-control">
+  <div class="card mb-3 shadow" style="border: 0px; border-radius: 15px;">
+    <div class="card-body">
+
+      <!-- Campo de data ocupando 100% -->
+      <form id="formData" 
+            action="{{ url_for('estoque.movimentacoes_diarias') }}" 
+            method="post">
+        <input type="date" 
+               id="date" 
+               name="date" 
+               value="{{ data }}" 
+               class="form-control mb-3">
       </form>
 
-{% if dia %}
-    {% if dia.fechado %}
-        <div class="alert alert-warning">
-          Status do dia: <strong>Fechado</strong>
-        </div>  
+      {% if dia %}
+        {% if dia.fechado %}
+          <div class="alert alert-warning w-100">
+            Status do dia: <strong>Fechado</strong>
+          </div>
+        {% else %}
+          <div class="alert alert-success w-100">
+            Status do dia: <strong>Aberto</strong>
+          </div>
+        {% endif %}
       {% else %}
-        <div class="alert alert-success">
-          Status do dia: <strong>Aberto</strong>
-        </div>  
+        <div class="alert alert-secondary w-100">
+          Status do dia: <strong>Indisponível</strong>
+        </div>
       {% endif %}
-{% else %}
-    <div class="alert alert-secondary">
-      Status do dia: <strong>Indisponivel</strong>
-    </div>  
-{% endif %}
-</div>
-</div>
+
+    </div>
+  </div>
+
 </div>
 
 

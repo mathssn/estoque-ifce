@@ -16,6 +16,7 @@
             <tr>
                 <th scope="col">Cód.</th>
                 <th scope="col">Produto</th>
+                <th scope="col">Unid.</th>
                 <th scope="col">Qntd. inicial</th>
                 <th scope="col">Qntd. entrada</th>
                 <th scope="col">Qntd. saida</th>
@@ -30,6 +31,7 @@
                 <tr>
                     <td scope="row">{{ produtos.get(saldo.produto_id).codigo }}</td>
                     <td>{{ produtos.get(saldo.produto_id).nome }}</td>
+                    <td>{{ produtos.get(saldo.produto_id).unidade }}</td>
                     <td>{{ saldo.quantidade_inicial }}</td>
                     <td>{{ saldo.quantidade_entrada }}</td>
                     <td>{{ saldo.quantidade_saida }}</td>
