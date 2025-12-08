@@ -10,9 +10,17 @@
         <label for="email" class="form-label">Email</label>
         <input type="text" class="form-control" id="email" name="email" autofocus required>
       </div>
-      <div class="mb-3">
+
+      <div class="mb-3 position-relative">
         <label for="password" class="form-label">Senha</label>
-        <input type="password" class="form-control" id="password" name="password" required>
+
+        <div class="input-group">
+          <input type="password" class="form-control" id="password" name="password" required>
+
+          <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()" tabindex="-1">
+            <i id="toggle-icon" class="bi bi-eye"></i>
+          </button>
+        </div>
       </div>
       <!-- <a href="#" onclick="validateForgotPassword(event);">Esqueceu a senha?</a> -->
       <button type="submit" class="btn btn-primary w-100">Entrar</button>
@@ -23,8 +31,24 @@
 <form id="forgot-form" action="{{ url_for('usuarios.forgot_password') }}" method="POST">
   <input type="hidden" name="email" id="forgot-email">
 </form>
- 
+
 <script>
+  function togglePassword() {
+    const field = document.getElementById("password");
+    const icon = document.getElementById("toggle-icon");
+
+    if (field.type === "password") {
+      field.type = "text";
+      icon.classList.remove("bi-eye");
+      icon.classList.add("bi-eye-slash");
+    } else {
+      field.type = "password";
+      icon.classList.remove("bi-eye-slash");
+      icon.classList.add("bi-eye");
+    }
+  }
+
+
   function validateForgotPassword(event) {
     event.preventDefault();
     const email = document.getElementById('email').value.trim();
@@ -32,8 +56,6 @@
       alert('Por favor, insira seu email para recuperar a senha.');
       return;
     }
-
-    console.log(email)
     
     document.getElementById('forgot-email').value = email;
     document.getElementById('forgot-form').submit();
