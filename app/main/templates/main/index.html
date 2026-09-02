@@ -1,12 +1,14 @@
 {% extends 'base.html' %}
 
+{% block title %}Refeitorio - IFCE Campus Crato{% endblock %}
+
 {% block content %}
 
 <div class="container py-4">
   <div class="d-grid gap-3">
     <a href="{{ url_for('main.estoque_menu') }}" class="btn btn-outline-success btn-lg">Estoque</a>
     {% if ['admin', 'nutricionista', 'financeiro', 'diretoria'] | check_intersection(session.get('roles')) %}
-    <a href="{{ url_for('main.atas_menu') }}" class="btn btn-outline-success btn-lg">Atas</a>
+    <a href="{{ url_for('main.atas_menu') }}" class="btn btn-outline-success btn-lg">Financeiro</a>
     {% endif %}
     <a href="{{ url_for('main.registro_refeicao_menu') }}"class="btn btn-outline-success btn-lg">Registro de refeições</a>
     {% if 'admin' in session.get('roles', []) %}

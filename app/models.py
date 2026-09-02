@@ -51,7 +51,7 @@ class NotaFiscal(Base):
     serie = Column(Integer, nullable=False)
     fornecedor_id = Column(Integer, ForeignKey("fornecedor.id"), nullable=False)
     empenho_id = Column(Integer, ForeignKey("empenho.id"), nullable=False)
-    status = Column(Enum(StatusNotaFiscalEnum), nullable=False, default=StatusEnum.ativo)
+    status = Column(Enum(StatusNotaFiscalEnum), nullable=False, default=StatusNotaFiscalEnum.pendente)
     observacao = Column(String(500))
 
     __table_args__ = (

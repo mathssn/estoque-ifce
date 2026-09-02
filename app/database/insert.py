@@ -249,7 +249,7 @@ def insert_marca(target, connection, **kw):
 def insert_ata(target, connection, **kw):
     connection.execute(
         Ata.__table__.insert(),
-        {"numero": "0", "ano": "0000", "fornecedor_id": 1, "tipo": "perecivel", "status": "ativo"}
+        {"numero": "0", "ano": "0000", "fornecedor_id": 1, "tipo": "perecivel", "status": "ativo", "validade": "2100-01-01"}
     )
 
 

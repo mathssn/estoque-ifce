@@ -17,16 +17,16 @@ empenhos_bp = Blueprint('empenhos', __name__, template_folder='templates')
 @login_required
 @role_required('admin', 'nutricionista', 'financeiro', 'diretoria')
 def empenhos_lista():
-    page = session.pop('page', 1)
-    p_page = 20
+    page = request.args.get('page', default=1, type=int)
+    p_page = 2
     offset = (page - 1) * p_page
 
-    fornecedor_id = session.pop('fornecedor_id', None)
-    ano = session.pop('ano', None)
+    fornecedor_id = session.pop('fornecedor_id', 1)
+    ano = session.pop('ano', "0")
 
     try:
         with get_session() as session_db:
-            query = session_db.query(Empenho).order_by(Empenho.ano).order_by(Empenho.numero)
+            query = session_db.query(Empenho).order_by(Empenho.ano, Empenho.numero).filter(Empenho.id!=1)
 
             # filtro fornecedor
             if fornecedor_id and fornecedor_id != 1:
@@ -55,7 +55,8 @@ def empenhos_lista():
             atas = {a.id: a for a in session_db.query(Ata).all()}
             
             total_pages = (total + p_page - 1) // p_page
-    except:
+    except Exception as e:
+        print(e)
         flash('Erro ao recuperar empenhos', 'danger')
         return redirect('/')
 
@@ -93,8 +94,7 @@ def form_empenhos_lista():
     
     session['fornecedor_id'] = int(f_id)
     session['ano'] = int(a)
-    session['page'] = page
-    return redirect(url_for('empenhos.empenhos_lista'))
+    return redirect(url_for('empenhos.empenhos_lista', page=page))
 
 
 @empenhos_bp.route('/extrato-empenhos')
