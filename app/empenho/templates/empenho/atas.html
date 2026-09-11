@@ -102,7 +102,7 @@
             <input type="number" id="ano_input" name="ano_input" class="form-control" value="{{ ano }}">
         </div>
         <div class="mb-3">
-            <button class="btn btn-primary h-100" type="submit">Pesquisar</button>
+            <button class="btn btn-primary h-100" type="submit"><i class="bi bi-search"></i></button>
         </div>
 
     </form>
@@ -148,9 +148,9 @@
                     <td>{{ ata.validade | format_date }}</td>
                     <td style="display: flex; gap: 10px;">
                         {% if ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) and ata.validade > today %}
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editAtaModal" onclick="fillEditForm('{{ata.id}}', '{{ata.numero}}', '{{ata.ano}}', '{{ata.fornecedor_id}}', '{{ata.tipo.value}}', '{{ata.status.value}}', '{{ata.validade}}')">Editar</button>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editAtaModal" onclick="fillEditForm('{{ata.id}}', '{{ata.numero}}', '{{ata.ano}}', '{{ata.fornecedor_id}}', '{{ata.tipo.value}}', '{{ata.status.value}}', '{{ata.validade}}')"><i class="bi bi-pencil-square"></i></button>
                         {% else %}
-                            <button class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
+                            <button class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')"><i class="bi bi-pencil-square"></i></button>
                         {% endif %}
                     </td>
                 </tr>

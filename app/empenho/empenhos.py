@@ -17,12 +17,14 @@ empenhos_bp = Blueprint('empenhos', __name__, template_folder='templates')
 @login_required
 @role_required('admin', 'nutricionista', 'financeiro', 'diretoria')
 def empenhos_lista():
-    page = request.args.get('page', default=1, type=int)
-    p_page = 2
+    page = session.pop('page', 1)
+    p_page = 20
     offset = (page - 1) * p_page
 
     fornecedor_id = session.pop('fornecedor_id', 1)
     ano = session.pop('ano', "0")
+
+    print(page, fornecedor_id, ano)
 
     try:
         with get_session() as session_db:
@@ -38,8 +40,6 @@ def empenhos_lista():
             # filtro ano
             if ano and ano != "0":
                 query = query.filter(Empenho.ano == ano)
-            else:
-                ano = str(datetime.today().date().year)
 
             total = query.count()
             empenhos = query.offset(offset).limit(p_page).all()
@@ -78,23 +78,24 @@ def form_empenhos_lista():
     try:
         if fornecedor_id != '':
             f_id = int(fornecedor_id)
+            session['fornecedor_id'] = int(f_id)
         else:
             f_id = 1
         if ano != '':
             a = int(ano)
+            session['ano'] = int(a)
         else:
             a = 0
         if page == '':
             page = 1
         else:
             page = int(page)
+            session['page'] = page
     except:
         flash('Informe valores válidos', 'danger')
         return redirect(url_for('main.atas_menu'))
     
-    session['fornecedor_id'] = int(f_id)
-    session['ano'] = int(a)
-    return redirect(url_for('empenhos.empenhos_lista', page=page))
+    return redirect(url_for('empenhos.empenhos_lista'))
 
 
 @empenhos_bp.route('/extrato-empenhos')

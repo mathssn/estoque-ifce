@@ -153,9 +153,9 @@
                     <td>{{ item.total | format_money }}</td>
                     <td style="display: flex; gap: 10px;">
                       {% if ata.status.value == 'ativo' and empenho.status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles', [])) %}
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editItemNFModal" onclick="fillEditItemForm('{{item.id}}', '{{item.produto_id}}', '{{item.quantidade}}', '{{item.valor_unitario | format_money(False) }}')">Editar</button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editItemNFModal" onclick="fillEditItemForm('{{item.id}}', '{{item.produto_id}}', '{{item.quantidade}}', '{{item.valor_unitario | format_money(False) }}')"><i class="bi bi-pencil-square"></i></button>
                       {% else %}
-                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
+                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')"><i class="bi bi-pencil-square"></i></button>
                       {% endif %}
                     </td>
                 </tr>

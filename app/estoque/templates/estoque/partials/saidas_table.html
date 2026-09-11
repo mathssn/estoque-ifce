@@ -52,21 +52,21 @@
                 {% if dia != None %}
                   {% if dia.fechado == False and ['admin', 'nutricionista'] | check_intersection(session.get('roles', [])) %}
                   <div style="display: flex; gap: 10px;">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editSaidaModal" onclick="fillSaidaEditForm('{{saida.id}}', '{{saida.produto_id}}', '{{saida.refeicao_id}}', '{{saida.data_saida}}', '{{saida.quantidade}}', '{{saida.marca_id}}', '{{saida.data_validade}}', '{{saida.fornecedor_id}}', '{{saida.nota_fiscal_id}}','{{saida.observacao}}')">Editar</button>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editSaidaModal" onclick="fillSaidaEditForm('{{saida.id}}', '{{saida.produto_id}}', '{{saida.refeicao_id}}', '{{saida.data_saida}}', '{{saida.quantidade}}', '{{saida.marca_id}}', '{{saida.data_validade}}', '{{saida.fornecedor_id}}', '{{saida.nota_fiscal_id}}','{{saida.observacao}}')"><i class="bi bi-pencil-square"></i></button>
                     <form action="{{ url_for('saidas.excluir_saida', saida_id=saida.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta saida?')">
-                      <button type="submit" class="btn btn-danger">Excluir</button>
+                      <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i></button>
                     </form>
                   </div>
                   {% else %}
                   <div style="display: flex; gap: 10px;">
-                    <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
-                    <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para excluir este item.')">Excluir</button>
+                    <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')"><i class="bi bi-pencil-square"></i></button>
+                    <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para excluir este item.')"><i class="bi bi-trash"></i></button>
                   </div>
                   {% endif %}
                   {% else %}
                   <div style="display: flex; gap: 10px;">
-                    <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
-                    <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para excluir este item.')">Excluir</button>
+                    <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')"><i class="bi bi-pencil-square"></i></button>
+                    <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para excluir este item.')"><i class="bi bi-trash"></i></button>
                   </div>
                 {% endif %}
               </td>

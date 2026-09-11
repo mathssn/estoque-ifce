@@ -104,8 +104,8 @@
                         </form>
                       {% else %}
                       <div style="display: flex; gap: 10px;">
-                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
-                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para excluir este item.')">Excluir</button>
+                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')"><i class="bi bi-pencil-square"></i></button>
+                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para excluir este item.')"><i class="bi bi-trash"></i></button>
                       </div>
                       {% endif %}
                     </td>
@@ -159,9 +159,9 @@
                     <td>{{ empenho.status.value | capitalize }}</td>
                     <td>
                       {% if ata.status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) and ata.validade > today %}
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEmpenhoModal" onclick="fillEditEmpenhoForm('{{empenho.id}}', '{{empenho.numero}}', '{{empenho.ano}}', '{{empenho.status.value}}', '{{empenho.observacao}}')">Editar</button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEmpenhoModal" onclick="fillEditEmpenhoForm('{{empenho.id}}', '{{empenho.numero}}', '{{empenho.ano}}', '{{empenho.status.value}}', '{{empenho.observacao}}')"><i class="bi bi-pencil-square"></i></button>
                       {% else %}
-                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')">Editar</button>
+                        <button type="button" class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')"><i class="bi bi-pencil-square"></i></button>
                       {% endif %}
                       </td>
                 </tr>
