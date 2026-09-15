@@ -27,7 +27,7 @@ def listar_atas():
 
     try:
         with get_session() as session_db:
-            query = session_db.query(Ata).order_by(Ata.ano).order_by(Ata.numero)
+            query = session_db.query(Ata).order_by(Ata.ano.desc()).order_by(Ata.numero)
 
             if fornecedor_id and fornecedor_id != 1:
                 query = query.filter_by(fornecedor_id=fornecedor_id).order_by(Ata.numero)

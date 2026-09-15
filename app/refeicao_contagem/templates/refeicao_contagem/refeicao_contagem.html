@@ -107,6 +107,8 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+            <input id="data" name="data" type="date" class="form-control" value="{{ data.isoformat() }}" hidden>
+
             <div class="mb-3">
                 <label for="refeicao_id" class="form-label">Refeição</label>
                 <select id="refeicao_id" name="refeicao_id" class="form-select" required>
@@ -120,7 +122,7 @@
 
             <div class="mb-3">
                 <label for="data" class="form-label">Data</label>
-                <input id="data" name="data" type="date" class="form-control" value="{{ data.isoformat() }}" readonly>
+                <input type="date" class="form-control" value="{{ data.isoformat() }}" disabled>
             </div>
             
             <div class="mb-3">
