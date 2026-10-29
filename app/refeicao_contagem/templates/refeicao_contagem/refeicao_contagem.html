@@ -49,9 +49,10 @@
         <thead>
             <tr>
                 <th scope="col">Refeição</th>
-                <th scope="col">Estudante</th>
-                <th scope="col">Servidor(A)</th>
-                <th scope="col">Terceirizado(A)</th>
+                <th scope="col">Estudante - Médio</th>
+                <th scope="col">Estudante - Superior</th>
+                <th scope="col">Servidor/A</th>
+                <th scope="col">Terceirizado/A</th>
                 <th scope="col">Outros</th>
                 <th scope="col">Total</th>
                 <th scope="col">Ações</th>
@@ -65,14 +66,15 @@
                     <td>{{ refeicao.nome }}</td>
                     {% for registro in registros %}
                         {% if registro.refeicao_id == refeicao.id %}
-                            <td>{{ registro.qntd_aluno }}</td>
+                            <td>{{ registro.qntd_aluno_ensino_med }}</td>
+                            <td>{{ registro.qntd_aluno_ensino_sup }}</td>
                             <td>{{ registro.qntd_servidores }}</td>
                             <td>{{ registro.qntd_terceirizados }}</td>
                             <td>{{ registro.qntd_outros }}</td>
                             <td>{{ registro.total }}</td>
                             <td>
                                 {% if ['admin', 'nutricionista', 'assistencia'] | check_intersection(session.get('roles', [])) %}
-                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editRegistroModal" onclick="fillEditForm('{{registro.id}}', '{{registro.refeicao_id}}', '{{registro.data}}', '{{registro.qntd_aluno}}', '{{registro.qntd_servidores}}', '{{registro.qntd_terceirizados}}', '{{registro.qntd_outros}}')"><i class="bi bi-pencil-square"></i></button>
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editRegistroModal" onclick="fillEditForm('{{registro.id}}', '{{registro.refeicao_id}}', '{{registro.data}}', '{{registro.qntd_aluno_ensino_med}}', '{{registro.qntd_aluno_ensino_sup}}', '{{registro.qntd_servidores}}', '{{registro.qntd_terceirizados}}', '{{registro.qntd_outros}}')"><i class="bi bi-pencil-square"></i></button>
                                 {% else %}
                                     <button class="btn btn-secondary" onclick="alert('Você não tem permissão para editar este item.')"><i class="bi bi-pencil-square"></i></button>
                                 {% endif %}
@@ -83,7 +85,8 @@
             {% endfor %}
             <tr>
                 <td>Total</td>
-                <td>{{ qntd_p_publico.get('aluno') }}</td>
+                <td>{{ qntd_p_publico.get('aluno_ensino_med') }}</td>
+                <td>{{ qntd_p_publico.get('aluno_ensino_sup') }}</td>
                 <td>{{ qntd_p_publico.get('servidor') }}</td>
                 <td>{{ qntd_p_publico.get('terceirizado') }}</td>
                 <td>{{ qntd_p_publico.get('outros') }}</td>
@@ -126,8 +129,13 @@
             </div>
             
             <div class="mb-3">
-                <label for="qntd_alunos" class="form-label">Estudante</label>
-                <input id="qntd_alunos" name="qntd_alunos" type="number" class="form-control" value="0" required>
+                <label for="qntd_alunos_ensino_med" class="form-label">Estudante - Médio</label>
+                <input id="qntd_alunos_ensino_med" name="qntd_alunos_ensino_med" type="number" class="form-control" value="0" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="qntd_alunos_ensino_sup" class="form-label">Estudante - Superior</label>
+                <input id="qntd_alunos_ensino_sup" name="qntd_alunos_ensino_sup" type="number" class="form-control" value="0" required>
             </div>
             
             <div class="mb-3">
@@ -181,10 +189,15 @@
             </div>
             
             <div class="mb-3">
-                <label for="edit_qntd_alunos" class="form-label">Estudante</label>
-                <input id="edit_qntd_alunos" name="edit_qntd_alunos" type="number" class="form-control" required>
+                <label for="edit_qntd_alunos_ensino_med" class="form-label">Estudante - Médio</label>
+                <input id="edit_qntd_alunos_ensino_med" name="edit_qntd_alunos_ensino_med" type="number" class="form-control" required>
             </div>
             
+            <div class="mb-3">
+                <label for="edit_qntd_alunos_ensino_sup" class="form-label">Estudante - Superior</label>
+                <input id="edit_qntd_alunos_ensino_sup" name="edit_qntd_alunos_ensino_sup" type="number" class="form-control" required>
+            </div>
+
             <div class="mb-3">
                 <label for="edit_qntd_servidores" class="form-label">Servidor(A)</label>
                 <input id="edit_qntd_servidores" name="edit_qntd_servidores" type="number" class="form-control" required>
@@ -217,10 +230,11 @@
         document.getElementById('formData').submit();
     })
 
-    function fillEditForm(id, refeicao_id, data, qntd_aluno, qntd_servidores, qntd_terceirizados, qntd_outros) {
+    function fillEditForm(id, refeicao_id, data, qntd_aluno_ensino_med, qntd_aluno_ensino_sup, qntd_servidores, qntd_terceirizados, qntd_outros) {
         document.getElementById("edit_refeicao_id").value = refeicao_id;
         document.getElementById("edit_data").value = data;
-        document.getElementById("edit_qntd_alunos").value = qntd_aluno;
+        document.getElementById("edit_qntd_alunos_ensino_med").value = qntd_aluno_ensino_med;
+        document.getElementById("edit_qntd_alunos_ensino_sup").value = qntd_aluno_ensino_sup;
         document.getElementById("edit_qntd_servidores").value = qntd_servidores;
         document.getElementById("edit_qntd_terceirizados").value = qntd_terceirizados;
         document.getElementById("edit_qntd_outros").value = qntd_outros;

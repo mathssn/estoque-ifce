@@ -7,7 +7,8 @@ class RegistroRefeicao(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     refeicao_id = Column(Integer, ForeignKey('refeicao.id'), nullable=False)
-    qntd_aluno = Column(Integer, nullable=False)
+    qntd_aluno_ensino_med = Column(Integer, nullable=False)
+    qntd_aluno_ensino_sup = Column(Integer, nullable=False)
     qntd_servidores = Column(Integer, nullable=False)
     qntd_terceirizados = Column(Integer, nullable=False)
     qntd_outros = Column(Integer, nullable=False)

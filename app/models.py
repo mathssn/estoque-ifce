@@ -13,17 +13,12 @@ class Produto(Base):
     __tablename__ = "produto"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    codigo = Column(Integer, nullable=False)
     nome = Column(String(100), nullable=False)
     descricao = Column(String(100))
     unidade = Column(String(10), nullable=False)
     quantidade_minima = Column(Integer, nullable=False)
     tipo = Column(Enum(Tipo), nullable=False)
     status = Column(Enum(StatusEnum), nullable=False, default=StatusEnum.ativo)
-
-    __table_args__ = (
-        UniqueConstraint('codigo', 'tipo', name='uix_codigo_tipo'),
-    )
 
 
 class Fornecedor(Base):

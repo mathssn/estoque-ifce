@@ -248,6 +248,7 @@ def empenho_info(empenho_id):
             if item_ata:
                 it.produto_id = item_ata.produto_id
                 it.valor_unitario = item_ata.valor_unitario
+                it.codigo = item_ata.codigo
             else:
                 flash('Não foi possivel identificar itens para ata desse empenho!', 'danger')
                 raise Exception()

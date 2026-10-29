@@ -242,6 +242,7 @@ def nota_info(nota_id):
                     if item_ata:
                         item.valor_unitario = item_ata.valor_unitario
                         item.produto_id = item_ata.produto_id
+                        item.codigo = item_ata.codigo
                     
                     if item_emp.quantidade_empenhada > 0:
                         item.disponivel = True

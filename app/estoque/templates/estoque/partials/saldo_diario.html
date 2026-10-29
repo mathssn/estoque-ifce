@@ -14,7 +14,6 @@
         <table class="table table-hover">
         <thead>
             <tr>
-                <th scope="col">Cód.</th>
                 <th scope="col">Produto</th>
                 <th scope="col">Unid.</th>
                 <th scope="col">Qntd. inicial</th>
@@ -29,7 +28,6 @@
             {% for saldo in saldos_diarios %}
             {% if produtos.get(saldo.produto_id).status == 'ativo' or 'admin' in session.get('roles', []) %}
                 <tr>
-                    <td scope="row">{{ produtos.get(saldo.produto_id).codigo }}</td>
                     <td>{{ produtos.get(saldo.produto_id).nome }}</td>
                     <td>{{ produtos.get(saldo.produto_id).unidade }}</td>
                     <td>{{ saldo.quantidade_inicial }}</td>

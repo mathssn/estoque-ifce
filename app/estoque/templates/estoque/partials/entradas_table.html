@@ -18,7 +18,6 @@
         <table class="table table-hover">
         <thead>
             <tr>
-                <th scope="col">Cód.</th>
                 <th scope="col">Nome</th>
                 <th scope="col">Unid.</th>
                 <th scope="col">Qntd.</th>
@@ -34,7 +33,6 @@
         <tbody>
           {% for entrada in entradas %}
           <tr>
-              <td>{{ produtos.get(entrada.produto_id).codigo }}</td>
               <td>{{ produtos.get(entrada.produto_id).nome }}</td>
               <td>{{ produtos.get(entrada.produto_id).unidade }}</td>
               <td>{{ entrada.quantidade }}</td>

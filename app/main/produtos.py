@@ -31,7 +31,6 @@ def produtos_lista():
 @role_required('admin', 'nutricionista')
 def cadastro_produtos():
     try:
-        codigo = int(request.form.get('codigo', 0))
         nome = request.form.get('nome').strip()
         descricao = request.form.get('descricao').strip()
         unidade = request.form.get('unidade').strip()
@@ -42,7 +41,7 @@ def cadastro_produtos():
         flash('Valores invalidos', 'danger')
         return redirect(url_for('produtos.produtos_lista'))
 
-    novo_produto = Produto(codigo=codigo, nome=nome, descricao=descricao, unidade=unidade, quantidade_minima=quantidade_minima, status=status, tipo=tipo)
+    novo_produto = Produto(nome=nome, descricao=descricao, unidade=unidade, quantidade_minima=quantidade_minima, status=status, tipo=tipo)
     if not validar_dados(novo_produto):
         flash('Insira dados válidos', 'danger')
         return redirect(url_for('produtos.produtos_lista'))
@@ -126,16 +125,15 @@ def excluir_produto(produto_id):
 
 
 def validar_dados(produto: Produto):
-    if not produto.codigo or not produto.nome or not produto.quantidade_minima or not produto.status or not produto.tipo:
+    if not produto.nome or not produto.quantidade_minima or not produto.status or not produto.tipo:
         return False
     
     try:
-        codigo = int(produto.codigo)
         quantidade_minima = int(produto.quantidade_minima)
     except (ValueError, TypeError):
         return False
 
-    if codigo < 0 or quantidade_minima < 0:
+    if quantidade_minima < 0:
         return False
     
     if produto.status not in ['ativo', 'inativo'] :

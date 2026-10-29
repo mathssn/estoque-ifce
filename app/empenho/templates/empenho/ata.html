@@ -90,7 +90,7 @@
 
             {% for item in itens %}
                 <tr>
-                    <td>{{ produtos.get(item.produto_id).codigo }}</td>
+                    <td>{{ item.codigo }}</td>
                     <td>{{ produtos.get(item.produto_id).nome }}</td>
                     <td>{{ item.quantidade_maxima }}</td>
                     <td>{{ marcas.get(item.marca_id).nome }}</td>
@@ -98,9 +98,9 @@
                     <td>{{ item.total | format_money }}</td>
                     <td style="display: flex; gap: 10px;">
                       {% if ata.status.value == 'ativo' and ['admin', 'nutricionista', 'financeiro'] | check_intersection(session.get('roles')) and ata.validade > today %}
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editItemAtaModal" onclick="fillEditItemForm('{{item.id}}', '{{item.produto_id}}', '{{item.quantidade_maxima}}', '{{item.marca_id}}', '{{item.valor_unitario | format_money(False) }}')">Editar</button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editItemAtaModal" onclick="fillEditItemForm('{{item.id}}', '{{item.produto_id}}', '{{item.codigo}}', '{{item.quantidade_maxima}}', '{{item.marca_id}}', '{{item.valor_unitario | format_money(False) }}')"><i class="bi bi-pencil-square"></i></button>
                         <form action="{{ url_for('atas.excluir_item_ata', item_id=item.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este item?')">
-                          <button type="submit" class="btn btn-danger">Excluir</button>
+                          <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i></button>
                         </form>
                       {% else %}
                       <div style="display: flex; gap: 10px;">
@@ -208,7 +208,7 @@
           <tbody>
             {% for item in itens %}
               <tr>
-                <td>{{ produtos.get(item.produto_id).codigo }}</td>
+                <td>{{ item.codigo }}</td>
                 <td>{{ produtos.get(item.produto_id).nome }}</td>
                 <td>{{ item.quantidade_maxima }}</td>
                 <td>{{ item.valor_unitario | format_money }}</td>
@@ -254,6 +254,11 @@
               {% endif %}
               {% endfor %}
             </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="codigo" class="form-label">Código</label>
+            <input id="codigo" name="codigo" type="number" class="form-control" required>
           </div>
 
           <div class="mb-3">
@@ -303,6 +308,11 @@
                 <option value="{{ produto_id }}">{{ produto.nome }}</option>
               {% endfor %}
             </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit_codigo" class="form-label">Código</label>
+            <input id="edit_codigo" name="edit_codigo" type="number" class="form-control" required>
           </div>
 
           <div class="mb-3">
@@ -420,8 +430,9 @@
 </div>
 
 <script>
-    function fillEditItemForm(id, produto_id, quantidade_maxima, marca_id, valor_unitario) {
+    function fillEditItemForm(id, produto_id, codigo, quantidade_maxima, marca_id, valor_unitario) {
         document.getElementById("edit_produto_id").value = produto_id;
+        document.getElementById("edit_codigo").value = codigo;
         document.getElementById("edit_quantidade_maxima").value = quantidade_maxima;
         document.getElementById("edit_marca_id").value = marca_id;
         document.getElementById("edit_valor_unitario").value = valor_unitario;
@@ -455,7 +466,7 @@
 
     const modalItemAta = document.getElementById('editItemAtaModal');
   modalItemAta.addEventListener('shown.bs.modal', function () {
-    const input = document.getElementById('edit_quantidade_maxima');
+    const input = document.getElementById('edit_codigo');
     input.focus();
   });
 </script>

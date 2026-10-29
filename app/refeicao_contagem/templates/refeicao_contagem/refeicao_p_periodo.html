@@ -41,9 +41,10 @@
         <thead>
             <tr>
                 <th scope="col">Refeição</th>
-                <th scope="col">Estudante</th>
-                <th scope="col">Servidor(A)</th>
-                <th scope="col">Terceirizado(A)</th>
+                <th scope="col">Estudante - Médio</th>
+                <th scope="col">Estudante - Superior</th>
+                <th scope="col">Servidor/A</th>
+                <th scope="col">Terceirizado/A</th>
                 <th scope="col">Outros</th>
                 <th scope="col">Total</th>
             </tr>
@@ -54,7 +55,8 @@
             {% for refeicao_nome, dados in refeicoes_dict.items() %}
                 <tr>
                     <td>{{ refeicao_nome }}</td>
-                    <td>{{ dados.get('qntd_aluno') }}</td>
+                    <td>{{ dados.get('qntd_aluno_ensino_med') }}</td>
+                    <td>{{ dados.get('qntd_aluno_ensino_sup') }}</td>
                     <td>{{ dados.get('qntd_servidores') }}</td>
                     <td>{{ dados.get('qntd_terceirizados') }}</td>
                     <td>{{ dados.get('qntd_outros') }}</td>
@@ -63,7 +65,8 @@
             {% endfor %}
             <tr>
                 <td>Total</td>
-                <td>{{ qntd_p_publico.get('aluno') }}</td>
+                <td>{{ qntd_p_publico.get('aluno_ensino_med') }}</td>
+                <td>{{ qntd_p_publico.get('aluno_ensino_sup') }}</td>
                 <td>{{ qntd_p_publico.get('servidores') }}</td>
                 <td>{{ qntd_p_publico.get('terceirizados') }}</td>
                 <td>{{ qntd_p_publico.get('outros') }}</td>

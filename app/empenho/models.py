@@ -22,6 +22,7 @@ class ItemAta(Base):
     __tablename__ = "item_ata"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    codigo = Column(Integer, nullable=False)
     ata_id = Column(Integer, ForeignKey("ata.id"), nullable=False)
     produto_id = Column(Integer, ForeignKey("produto.id"), nullable=False)
     quantidade_maxima = Column(Integer, nullable=False)

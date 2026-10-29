@@ -26,18 +26,19 @@ def registro_refeicao():
 
     refeicoes_cadastradas = []
     total_dia = 0
-    qntd_p_publico = {'aluno': 0, 'servidor': 0, 'terceirizado': 0, 'outros': 0}
+    qntd_p_publico = {'aluno_ensino_med': 0, 'aluno_ensino_sup': 0, 'servidor': 0, 'terceirizado': 0, 'outros': 0}
     try:
         with get_session() as session_db:
             registros = session_db.query(RegistroRefeicao).filter_by(data=data).order_by(RegistroRefeicao.refeicao_id.asc()).all()
 
             # Calcula o total da refeição
             for registro in registros:
-                registro.total = registro.qntd_aluno + registro.qntd_servidores + registro.qntd_terceirizados + registro.qntd_outros
+                registro.total = registro.qntd_aluno_ensino_med + registro.qntd_aluno_ensino_sup + registro.qntd_servidores + registro.qntd_terceirizados + registro.qntd_outros
                 total_dia += registro.total
 
                 # Calcula o total por publico
-                qntd_p_publico['aluno'] += registro.qntd_aluno
+                qntd_p_publico['aluno_ensino_med'] += registro.qntd_aluno_ensino_med
+                qntd_p_publico['aluno_ensino_sup'] += registro.qntd_aluno_ensino_sup
                 qntd_p_publico['servidor'] += registro.qntd_servidores
                 qntd_p_publico['terceirizado'] += registro.qntd_terceirizados
                 qntd_p_publico['outros'] += registro.qntd_outros
@@ -61,7 +62,8 @@ def registro_refeicao():
 def cadastro_registro_refeicao():
     try:
         refeicao_id = int(request.form.get('refeicao_id', 0))
-        qntd_aluno = int(request.form.get('qntd_alunos', 0))
+        qntd_aluno_ensino_med = int(request.form.get('qntd_alunos_ensino_med', 0))
+        qntd_aluno_ensino_sup = int(request.form.get('qntd_alunos_ensino_sup', 0))
         qntd_servidores = int(request.form.get('qntd_servidores', 0))
         qntd_terceirizados = int(request.form.get('qntd_terceirizados', 0))
         qntd_outros = int(request.form.get('qntd_outros', 0))
@@ -72,7 +74,8 @@ def cadastro_registro_refeicao():
 
     nova_refeicao = RegistroRefeicao(
         refeicao_id=refeicao_id,
-        qntd_aluno=qntd_aluno,
+        qntd_aluno_ensino_med=qntd_aluno_ensino_med,
+        qntd_aluno_ensino_sup=qntd_aluno_ensino_sup,
         qntd_servidores=qntd_servidores,
         qntd_terceirizados=qntd_terceirizados,
         qntd_outros=qntd_outros,
@@ -106,7 +109,8 @@ def editar_registro_refeicao(registro_id):
             
             data = registro.data
             try:
-                registro.qntd_aluno = int(request.form.get('edit_qntd_alunos', 0))
+                registro.qntd_aluno_ensino_med = int(request.form.get('edit_qntd_alunos_ensino_med', 0))
+                registro.qntd_aluno_ensino_sup = int(request.form.get('edit_qntd_alunos_ensino_sup', 0))
                 registro.qntd_servidores = int(request.form.get('edit_qntd_servidores', 0))
                 registro.qntd_terceirizados = int(request.form.get('edit_qntd_terceirizados', 0))
                 registro.qntd_outros = int(request.form.get('edit_qntd_outros', 0))
@@ -143,7 +147,7 @@ def registro_refeicao_periodo():
     refeicoes_cadastradas = []
     total = 0
     refeicoes_dict = {}
-    qntd_p_publico = {'aluno': 0, 'servidores': 0, 'terceirizados': 0, 'outros': 0, 'total': 0}
+    qntd_p_publico = {'aluno_ensino_med': 0, 'aluno_ensino_sup': 0, 'servidores': 0, 'terceirizados': 0, 'outros': 0, 'total': 0}
 
     try:
         with get_session() as session_db:
@@ -155,7 +159,7 @@ def registro_refeicao_periodo():
             )
 
             for registro in registros:
-                registro.total = (registro.qntd_aluno + registro.qntd_servidores + registro.qntd_terceirizados + registro.qntd_outros)
+                registro.total = (registro.qntd_aluno_ensino_med + registro.qntd_aluno_ensino_sup + registro.qntd_servidores + registro.qntd_terceirizados + registro.qntd_outros)
                 total += registro.total
 
                 # Pega refeição vinculada
@@ -168,23 +172,26 @@ def registro_refeicao_periodo():
                     nome_refeicao = refeicao.nome  # ou use refeicao.id se preferir
                     if nome_refeicao not in refeicoes_dict:
                         refeicoes_dict[nome_refeicao] = {
-                            "qntd_aluno": 0,
+                            "qntd_aluno_ensino_med": 0,
+                            "qntd_aluno_ensino_sup": 0,
                             "qntd_servidores": 0,
                             "qntd_terceirizados": 0,
                             "qntd_outros": 0,
                             "total": 0
                         }
-                    refeicoes_dict[nome_refeicao]["qntd_aluno"] += registro.qntd_aluno
+                    refeicoes_dict[nome_refeicao]["qntd_aluno_ensino_med"] += registro.qntd_aluno_ensino_med
+                    refeicoes_dict[nome_refeicao]["qntd_aluno_ensino_sup"] += registro.qntd_aluno_ensino_sup
                     refeicoes_dict[nome_refeicao]["qntd_servidores"] += registro.qntd_servidores
                     refeicoes_dict[nome_refeicao]["qntd_terceirizados"] += registro.qntd_terceirizados
                     refeicoes_dict[nome_refeicao]["qntd_outros"] += registro.qntd_outros
-                    refeicoes_dict[nome_refeicao]["total"] += registro.qntd_aluno + registro.qntd_servidores + registro.qntd_terceirizados + registro.qntd_outros
+                    refeicoes_dict[nome_refeicao]["total"] += registro.qntd_aluno_ensino_med + registro.qntd_aluno_ensino_sup + registro.qntd_servidores + registro.qntd_terceirizados + registro.qntd_outros
 
-                    qntd_p_publico['aluno'] += registro.qntd_aluno
+                    qntd_p_publico['aluno_ensino_med'] += registro.qntd_aluno_ensino_med
+                    qntd_p_publico['aluno_ensino_sup'] += registro.qntd_aluno_ensino_sup
                     qntd_p_publico['servidores'] += registro.qntd_servidores
                     qntd_p_publico['terceirizados'] += registro.qntd_terceirizados
                     qntd_p_publico['outros'] += registro.qntd_outros
-                    qntd_p_publico['total'] += registro.qntd_aluno + registro.qntd_servidores + registro.qntd_terceirizados + registro.qntd_outros
+                    qntd_p_publico['total'] += registro.qntd_aluno_ensino_med + registro.qntd_aluno_ensino_sup + registro.qntd_servidores + registro.qntd_terceirizados + registro.qntd_outros
 
             refeicoes = session_db.query(Refeicao).all()
 
@@ -198,7 +205,7 @@ def registro_refeicao_periodo():
     return render_template('refeicao_contagem/refeicao_p_periodo.html', registros=registros, data_inicio=data_inicio, data_fim=data_fim, refeicoes_cadastradas=refeicoes_cadastradas, refeicoes=refeicoes, total=total, refeicoes_dict=refeicoes_dict, qntd_p_publico=qntd_p_publico)
 
 def validar_dados_refeicao(refeicao: RegistroRefeicao):
-    if refeicao.qntd_aluno < 0 or refeicao.qntd_servidores < 0 or refeicao.qntd_terceirizados < 0 or refeicao.qntd_outros < 0:
+    if refeicao.qntd_aluno_ensino_med < 0 or refeicao.qntd_aluno_ensino_sup < 0 or refeicao.qntd_servidores < 0 or refeicao.qntd_terceirizados < 0 or refeicao.qntd_outros < 0:
         return False
     
     try:

@@ -87,7 +87,7 @@
             <form id="formEditQntds" action="{{ url_for('empenhos.editar_itens_empenho', empenho_id=empenho.id, origem=origem) }}" method="POST">
             {% for item in itens %}
                 <tr>
-                    <td>{{ produtos.get(item.produto_id).codigo }}</td>
+                    <td>{{ item.codigo }}</td>
                     <td>{{ produtos.get(item.produto_id).nome }}</td>
                     <td>
                       <input type="number" name="item_{{ item.id }}" value="{{ item.quantidade_empenhada }}" class="form-control quantidade-input" disabled>
@@ -204,7 +204,7 @@
             {% for item in itens %}
               {% if item.quantidade_empenhada > 0 %}
               <tr>
-                <td>{{ produtos.get(item.produto_id).codigo }}</td>
+                <td>{{ item.codigo }}</td>
                 <td>{{ produtos.get(item.produto_id).nome }}</td>
                 <td>{{ item.quantidade_empenhada }}</td>
                 <td>{{ item.valor_unitario | format_money }}</td>

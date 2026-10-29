@@ -211,6 +211,7 @@ def cadastro_item_ata(ata_id):
         produto_id = int(request.form.get('produto_id'))
         marca_id = int(request.form.get('marca_id'))
         qntd_maxima = int(request.form.get('quantidade_maxima', 0))
+        codigo = int(request.form.get('codigo', 0))
         valor_unit = request.form.get('valor_unitario').strip()
         valor_unit = valor_unit.replace('.', '')
         valor_unit = valor_unit.replace(',', '.')
@@ -224,7 +225,7 @@ def cadastro_item_ata(ata_id):
         flash('Valor unitário invalido!', 'danger')
         return redirect(url_for('atas.ata_info', ata_id=ata_id))
     
-    novo_item = ItemAta(ata_id=ata_id, produto_id=produto_id, quantidade_maxima=qntd_maxima, marca_id=marca_id, valor_unitario=valor_unit)
+    novo_item = ItemAta(ata_id=ata_id, produto_id=produto_id, codigo=codigo, quantidade_maxima=qntd_maxima, marca_id=marca_id, valor_unitario=valor_unit)
 
     try:
         with get_session() as session_db:
@@ -272,6 +273,7 @@ def editar_item_ata(item_id):
             ata_id = item.ata_id
 
             try:
+                codigo = int(request.form.get('edit_codigo', 0))
                 qntd_maxima = int(request.form.get('edit_quantidade_maxima', 0))
                 marca_id = int(request.form.get('edit_marca_id'))
                 valor_unit = request.form.get('edit_valor_unitario').strip()
@@ -286,6 +288,7 @@ def editar_item_ata(item_id):
                 flash('Valor unitário inválido!', 'danger')
                 return redirect(url_for('atas.ata_info', ata_id=item.ata_id))
 
+            item.codigo = codigo
             item.quantidade_maxima = qntd_maxima
             item.valor_unitario = valor_unit
             item.marca_id = marca_id

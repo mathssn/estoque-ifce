@@ -144,7 +144,7 @@
             {% for item in itens %}
               {% if item.disponivel == True %}
                 <tr>
-                    <td>{{ produtos.get(item.produto_id).codigo }}</td>
+                    <td>{{ item.codigo }}</td>
                     <td>{{ produtos.get(item.produto_id).nome }}</td>
                     <td>
                       <input type="number" name="item_{{ item.id }}" value="{{ item.quantidade }}" class="form-control quantidade-input" disabled>

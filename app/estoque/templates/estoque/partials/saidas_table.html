@@ -20,7 +20,6 @@
         <table class="table table-hover">
         <thead>
             <tr>
-                <th scope="col">Cód.</th>
                 <th scope="col">Nome</th>
                 <th scope="col">Refeição</th>
                 <th scope="col">Unid.</th>
@@ -37,7 +36,6 @@
         <tbody>
           {% for saida in saidas %}
             <tr>
-              <td>{{ produtos[saida.produto_id].codigo }}</td>
               <td>{{ produtos[saida.produto_id].nome }}</td>
               <td>{{ refeicoes[saida.refeicao_id].nome }}</td>
               <td>{{ produtos[saida.produto_id].unidade }}</td>
